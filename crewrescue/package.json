@@ -1,0 +1,21 @@
+{
+  "name": "crewrescue",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web,pwa -c cyan,magenta,yellow \"npm run dev --workspace=services/api\" \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=apps/pwa\"",
+    "dev:api": "npm run dev --workspace=services/api",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:seed": "npm run seed --workspace=services/api",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
