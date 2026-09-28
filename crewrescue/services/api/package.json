@@ -7,8 +7,11 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
+    "worker": "node src/workers/optimizationWorker.js",
+    "dev:worker": "nodemon src/workers/optimizationWorker.js",
     "seed": "node scripts/seed.js",
-    "lint": "eslint src/"
+    "seed:knowledge": "node scripts/seedKnowledge.js",
+    "lint": "oxlint src/"
   },
   "dependencies": {
     "@crewrescue/shared": "*",

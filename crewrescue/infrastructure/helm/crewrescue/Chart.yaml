@@ -1,0 +1,15 @@
+apiVersion: v2
+name: crewrescue
+description: Helm chart for CrewRescue AI - Crisis-Resilient Workforce Optimization Platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - workforce-optimization
+  - field-service-management
+  - emergency-dispatch
+  - crewrescue
+  - kubernetes
+maintainers:
+  - name: CrewRescue Engineering Team
+    email: ops@crewrescue.app

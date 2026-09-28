@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Users, Activity, RefreshCw } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Activity, RefreshCw, AlertTriangle, Bell, Sparkles, ShieldAlert } from 'lucide-react';
 import api from '../lib/api.js';
 import toast from 'react-hot-toast';
 
@@ -114,8 +114,11 @@ function TrendBars({ data }) {
 const SEV_COLORS = { CRITICAL: 'var(--critical)', HIGH: 'var(--warning)', MEDIUM: 'var(--info)', LOW: 'var(--text-muted)' };
 
 export default function AnalyticsPage() {
-  const [data, setData]       = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData]             = useState(null);
+  const [loading, setLoading]       = useState(true);
+  const [slaData, setSlaData]       = useState(null);
+  const [slaLoading, setSlaLoading] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -126,7 +129,36 @@ export default function AnalyticsPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  const loadSlaPredictions = async () => {
+    setSlaLoading(true);
+    try {
+      const res = await api.get('/sla/predictions');
+      if (res.data?.success) {
+        setSlaData(res.data);
+      }
+    } catch {
+      // quiet fallback
+    } finally {
+      setSlaLoading(false);
+    }
+  };
+
+  const handleTestNotification = async (type = 'SLA_BREACH_WARNING') => {
+    setSendingTest(true);
+    try {
+      await api.post('/sla/notifications/test', { type });
+      toast.success('Live notification dispatched across active channels');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to dispatch test notification');
+    } finally {
+      setSendingTest(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+    loadSlaPredictions();
+  }, []);
 
   const sevSegments = data?.severityBreakdown?.map(s => ({
     label: s._id, value: s.count, color: SEV_COLORS[s._id] ?? '#6B7280',
@@ -294,6 +326,137 @@ export default function AnalyticsPage() {
                   );
                 })}
               </div>
+            </div>
+          </div>
+
+          {/* Row 5 — AI SLA Breach Predictor & Proactive Alerts */}
+          <div className="card" style={{ marginTop: 16 }}>
+            <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Sparkles size={16} style={{ color: 'var(--brand-400)' }} />
+                <div className="card-title">AI SLA Breach Predictor & Early Warning</div>
+                <span className="badge badge-primary" style={{ fontSize: '0.65rem' }}>Logistic Regression ML</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={loadSlaPredictions}
+                  disabled={slaLoading}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                >
+                  <RefreshCw size={12} className={slaLoading ? 'spin' : ''} />
+                  <span>Re-score</span>
+                </button>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleTestNotification('SLA_BREACH_WARNING')}
+                  disabled={sendingTest}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Bell size={12} />
+                  <span>{sendingTest ? 'Sending...' : 'Test Multi-Channel Alert'}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="card-body">
+              {/* Summary Metrics */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 16 }}>
+                <div style={{ padding: '12px 16px', background: 'var(--bg-elevated)', borderRadius: 8, borderLeft: '3px solid var(--critical)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>High Breach Risk</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--critical)', marginTop: 4 }}>
+                    {slaData?.summary?.highRiskCount ?? 0}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>&gt;70% breach probability</div>
+                </div>
+
+                <div style={{ padding: '12px 16px', background: 'var(--bg-elevated)', borderRadius: 8, borderLeft: '3px solid var(--warning)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Medium Risk</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--warning)', marginTop: 4 }}>
+                    {slaData?.summary?.mediumRiskCount ?? 0}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>40% - 70% breach risk</div>
+                </div>
+
+                <div style={{ padding: '12px 16px', background: 'var(--bg-elevated)', borderRadius: 8, borderLeft: '3px solid var(--success)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Low Risk (Safe)</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--success)', marginTop: 4 }}>
+                    {slaData?.summary?.lowRiskCount ?? 0}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>&lt;40% breach risk</div>
+                </div>
+
+                <div style={{ padding: '12px 16px', background: 'var(--bg-elevated)', borderRadius: 8, borderLeft: '3px solid var(--brand-400)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Assessed</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--brand-400)', marginTop: 4 }}>
+                    {slaData?.summary?.totalAssessed ?? 0}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Active unverified tickets</div>
+                </div>
+              </div>
+
+              {/* Table of Top Predicted Risks */}
+              {slaData?.predictions?.length ? (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', fontSize: '0.75rem', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
+                        <th style={{ padding: '8px 10px' }}>TICKET</th>
+                        <th style={{ padding: '8px 10px' }}>TITLE</th>
+                        <th style={{ padding: '8px 10px' }}>SEVERITY</th>
+                        <th style={{ padding: '8px 10px' }}>BREACH PROBABILITY</th>
+                        <th style={{ padding: '8px 10px' }}>RISK FACTORS</th>
+                        <th style={{ padding: '8px 10px' }}>RECOMMENDED ACTION</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {slaData.predictions.slice(0, 10).map((item) => {
+                        const probPct = Math.round((item.prediction?.probability ?? 0) * 100);
+                        const isHigh = item.prediction?.riskLevel === 'HIGH';
+                        const isMed = item.prediction?.riskLevel === 'MEDIUM';
+                        const badgeColor = isHigh ? 'var(--critical)' : isMed ? 'var(--warning)' : 'var(--success)';
+                        const badgeBg = isHigh ? 'rgba(239, 68, 68, 0.12)' : isMed ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)';
+                        return (
+                          <tr key={item.workOrderId} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                            <td style={{ padding: '8px 10px', fontWeight: 700, fontFamily: 'monospace' }}>
+                              {item.workOrderNumber}
+                            </td>
+                            <td style={{ padding: '8px 10px', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {item.title}
+                            </td>
+                            <td style={{ padding: '8px 10px' }}>
+                              <span style={{
+                                padding: '2px 6px', borderRadius: 4, fontSize: '0.65rem', fontWeight: 700,
+                                background: item.severity === 'CRITICAL' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                                color: item.severity === 'CRITICAL' ? 'var(--critical)' : 'var(--warning)',
+                              }}>
+                                {item.severity}
+                              </span>
+                            </td>
+                            <td style={{ padding: '8px 10px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span style={{ padding: '3px 8px', borderRadius: 12, fontWeight: 700, fontSize: '0.7rem', color: badgeColor, background: badgeBg }}>
+                                  {probPct}% ({item.prediction?.riskLevel})
+                                </span>
+                              </div>
+                            </td>
+                            <td style={{ padding: '8px 10px', color: 'var(--text-secondary)' }}>
+                              {item.prediction?.topFactors?.slice(0, 2).map(f => f.factor).join(', ') || 'Normal queue load'}
+                            </td>
+                            <td style={{ padding: '8px 10px', fontWeight: 600, color: isHigh ? 'var(--critical)' : 'var(--text-secondary)' }}>
+                              {item.prediction?.recommendedAction || 'Monitor progress'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+                  {slaLoading ? 'Calculating machine learning breach probabilities...' : 'All active work orders are within healthy SLA margins.'}
+                </div>
+              )}
             </div>
           </div>
         </>

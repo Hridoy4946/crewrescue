@@ -38,7 +38,7 @@ services:
   # ── Backend API ──────────────────────────────────────────────────────────────
   api:
     build:
-      context: ../../
+      context: .
       dockerfile: infrastructure/docker/api.Dockerfile
     container_name: crewrescue-api
     restart: unless-stopped
@@ -48,6 +48,8 @@ services:
       NODE_ENV: production
       PORT: 5000
       MONGODB_URI: mongodb://mongo:27017/crewrescue
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       REDIS_URL: redis://redis:6379
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-crewrescue_super_secret_access_jwt_key_2025_prod}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-crewrescue_super_secret_refresh_jwt_key_2025_prod}
@@ -67,9 +69,10 @@ services:
       retries: 3
 
   # ── BullMQ Optimization Worker ───────────────────────────────────────────────
+  # Runs the SA/GA solver worker, consuming jobs from the Redis-backed BullMQ queue
   worker:
     build:
-      context: ../../
+      context: .
       dockerfile: infrastructure/docker/api.Dockerfile
     container_name: crewrescue-worker
     restart: unless-stopped
@@ -77,6 +80,8 @@ services:
     environment:
       NODE_ENV: production
       MONGODB_URI: mongodb://mongo:27017/crewrescue
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       REDIS_URL: redis://redis:6379
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-crewrescue_super_secret_access_jwt_key_2025_prod}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
@@ -89,11 +94,17 @@ services:
         condition: service_healthy
       api:
         condition: service_healthy
+    deploy:
+      replicas: 1            # Scale to 2+ for heavy optimization load
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
 
   # ── Frontend Web Console ─────────────────────────────────────────────────────
   web:
     build:
-      context: ../../
+      context: .
       dockerfile: infrastructure/docker/web.Dockerfile
     container_name: crewrescue-web
     restart: unless-stopped
@@ -109,7 +120,7 @@ services:
   # ── Mobile Field Technician PWA ──────────────────────────────────────────────
   pwa:
     build:
-      context: ../../
+      context: .
       dockerfile: infrastructure/docker/pwa.Dockerfile
     container_name: crewrescue-pwa
     restart: unless-stopped
@@ -127,3 +138,4 @@ volumes:
 networks:
   crewrescue-net:
     driver: bridge
+

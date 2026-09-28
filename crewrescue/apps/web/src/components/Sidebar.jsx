@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Map, AlertTriangle, Wrench, Users, Truck,
-  Warehouse, BarChart3, Zap, Settings, LogOut, Radio,
+  Warehouse, BarChart3, Zap, Settings, LogOut, Radio, Bot,
 } from 'lucide-react';
 import { useAuthStore, useEmergencyStore } from '../store/index.js';
 
@@ -21,6 +21,7 @@ const NAV = [
   { label: 'Intelligence', items: [
     { to: '/analytics',   icon: BarChart3, label: 'Analytics' },
     { to: '/ai',          icon: Zap,       label: 'AI Triage' },
+    { to: '/copilot',     icon: Bot,       label: 'Copilot (RAG)', badgeNew: true },
   ]},
 ];
 
@@ -72,6 +73,13 @@ export default function Sidebar({ stats }) {
                     <span className={`nav-badge${item.badgeKey === 'emergency' ? ' info' : ''}`}>
                       {badge}
                     </span>
+                  )}
+                  {item.badgeNew && (
+                    <span style={{
+                      marginLeft: 'auto', fontSize: '0.55rem', padding: '1px 5px',
+                      borderRadius: 8, background: 'rgba(139,92,246,0.2)',
+                      color: '#8B5CF6', border: '1px solid rgba(139,92,246,0.3)', fontWeight: 700,
+                    }}>NEW</span>
                   )}
                 </NavLink>
               );

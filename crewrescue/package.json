@@ -8,14 +8,20 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n api,web,pwa -c cyan,magenta,yellow \"npm run dev --workspace=services/api\" \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=apps/pwa\"",
+    "dev": "concurrently -n api,web -c cyan,magenta \"npm run dev --workspace=services/api\" \"npm run dev --workspace=apps/web\"",
+    "dev:full": "concurrently -n api,worker,web -c cyan,yellow,magenta \"npm run dev --workspace=services/api\" \"npm run dev:worker --workspace=services/api\" \"npm run dev --workspace=apps/web\"",
+    "dev:all": "concurrently -n api,worker,web,pwa -c cyan,yellow,magenta,green \"npm run dev --workspace=services/api\" \"npm run dev:worker --workspace=services/api\" \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=apps/pwa\"",
     "dev:api": "npm run dev --workspace=services/api",
+    "dev:worker": "npm run dev:worker --workspace=services/api",
     "dev:web": "npm run dev --workspace=apps/web",
+    "dev:pwa": "npm run dev --workspace=apps/pwa",
     "dev:seed": "npm run seed --workspace=services/api",
+    "dev:seed:knowledge": "npm run seed:knowledge --workspace=services/api",
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "oxlint": "^1.81.0"
   }
 }

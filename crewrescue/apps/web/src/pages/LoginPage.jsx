@@ -4,10 +4,10 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useAuthStore } from '../store/index.js';
 
 export default function LoginPage() {
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading]   = useState(false);
-  const login    = useAuthStore((s) => s.login);
+  const [loading, setLoading] = useState(false);
+  const login = useAuthStore((s) => s.login);
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
@@ -50,10 +50,10 @@ export default function LoginPage() {
 
         {/* Quick fill buttons */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-          <button className="btn btn-ghost btn-sm w-full" style={{ flex:1 }} onClick={() => fillDemo('admin')}>
+          <button className="btn btn-ghost btn-sm w-full" style={{ flex: 1 }} onClick={() => fillDemo('admin')}>
             Fill Admin
           </button>
-          <button className="btn btn-ghost btn-sm w-full" style={{ flex:1 }} onClick={() => fillDemo('dispatcher')}>
+          <button className="btn btn-ghost btn-sm w-full" style={{ flex: 1 }} onClick={() => fillDemo('dispatcher')}>
             Fill Dispatcher
           </button>
         </div>
@@ -94,7 +94,7 @@ export default function LoginPage() {
             disabled={loading}
           >
             {loading ? (
-              <><div className="loading-spinner" style={{ width:16, height:16, borderWidth:2 }} /> Signing in…</>
+              <><div className="loading-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Signing in…</>
             ) : 'Sign In to CrewRescue'}
           </button>
         </form>

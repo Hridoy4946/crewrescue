@@ -12,6 +12,9 @@ import { initSocket } from './socket/index.js';
 import { logger } from './config/logger.js';
 import { metricsMiddleware, metricsHandler } from './config/metrics.js';
 
+// Models (pre-register all schemas)
+import './models/KnowledgeDoc.js';
+
 // Routes
 import authRoutes from './routes/auth.js';
 import technicianRoutes from './routes/technicians.js';
@@ -26,6 +29,9 @@ import emergencyRoutes from './routes/emergency.js';
 import simulatorRoutes from './routes/simulator.js';
 import aiRoutes from './routes/ai.js';
 import organizationRoutes from './routes/organizations.js';
+import analyticsRoutes from './routes/analytics.js';
+import { startSLAWatch } from './services/notificationService.js';
+import WorkOrder from './models/WorkOrder.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -85,6 +91,8 @@ app.use('/api/optimization', optimizationRoutes);
 app.use('/api/emergency', emergencyRoutes);
 app.use('/api/simulator', simulatorRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/sla', analyticsRoutes);
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
 app.use((_req, res) => {
@@ -109,6 +117,7 @@ async function bootstrap() {
   await connectDB();
   const io = initSocket(httpServer);
   app.set('io', io);
+  startSLAWatch(io, WorkOrder);
   httpServer.listen(PORT, () => {
     logger.info(`🚀 CrewRescue API running on http://localhost:${PORT}`);
     logger.info(`📡 WebSocket server ready`);

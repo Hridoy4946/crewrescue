@@ -1,0 +1,225 @@
+================================================================================
+                    CREWRESCUE AI — MASTER SYSTEM PLAN
+          Intelligent Crisis-Resilient Workforce Optimization Platform
+================================================================================
+Document Version : 1.0.0
+Architecture     : Enterprise Multi-Container Decoupled Monorepo
+Target Market    : Power Utilities, Telecom, Water Systems, Critical Infrastructure
+Status           : Phase 1 Complete (Operational MVP) | Phase 2 In-Progress
+================================================================================
+
+--------------------------------------------------------------------------------
+1. EXECUTIVE SUMMARY & MISSION STATEMENT
+--------------------------------------------------------------------------------
+"Everything just changed. What should the organization do now?"
+
+CrewRescue AI is an intelligent, emergency-resilient Field Service Management (FSM) 
+and Workforce Optimization Platform designed specifically for mission-critical 
+infrastructure operators.
+
+Traditional FSM platforms (Salesforce Field Service, ServiceNow, ClickSoftware) 
+excel at static scheduling under calm conditions, but catastrophically degrade 
+when unexpected crises strike (storms, grid collapses, technician shortages). 
+CrewRescue AI bridges this gap through:
+  1. AI-assisted incident triage & NLP entity extraction
+  2. Dynamic multi-objective heuristic re-optimization
+  3. Explainable human-in-the-loop dispatch controls
+  4. Real-time WebSocket telemetry across all mobile & web clients
+
+--------------------------------------------------------------------------------
+2. USER ACTORS & ROLE-BASED ACCESS CONTROL (RBAC)
+--------------------------------------------------------------------------------
+The system supports 11 distinct operational roles:
+
+A. Human Actors:
+  1. EMERGENCY_MANAGER   : Declares/resolves disaster levels (L0-L4), adjusts global
+                           priority weights, triggers regional schedule overhauls.
+  2. DISPATCHER          : Reviews incoming tickets, triggers optimization solver,
+                           reviews Explainable AI reasoning, approves dispatch plans.
+  3. FIELD_SUPERVISOR    : Monitors active crews, tracks live GPS coordinates, oversees
+                           regional technician skill coverage.
+  4. TECHNICIAN          : Receives work orders via mobile view/PWA, logs state 
+                           transitions (ACCEPTED -> EN_ROUTE -> ARRIVED -> IN_PROGRESS 
+                           -> RESOLVED), logs parts used and repair notes.
+  5. OPERATIONS_DIRECTOR : Manages multi-tenant organization settings, depots, fleet,
+                           user permissions, and overall SLA policies.
+  6. AUDITOR / EXECUTIVE : Retrospective review of historical optimization runs,
+                           SLA breach penalties, financial exposure, and audit logs.
+
+B. Automated / System Actors:
+  1. AI Triage Agent     : Ingests raw issue descriptions, predicts severity,
+                           classifies categories, and extracts required skills & parts.
+  2. Optimization Solver : Evaluates multi-objective cost functions across unassigned
+                           tickets and technician capacities using heuristic solvers.
+  3. Emergency Monitor   : Monitors incident surges & SLA breach thresholds; triggers
+                           alerts across Socket.IO rooms.
+  4. Real-Time Gateway   : Socket.IO WebSocket engine synchronizing live state.
+
+--------------------------------------------------------------------------------
+3. END-TO-END SYSTEM WORKFLOW
+--------------------------------------------------------------------------------
+
+[Customer / Sensor Outage Alert]
+             │
+             ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 1. INCIDENT INGESTION & AI TRIAGE                           │
+│    • Raw incident text submitted to REST API                │
+│    • AI / NLP Model classifies category, severity, skills   │
+│    • WorkOrder created with automated SLA response deadlines│
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 2. EMERGENCY ESCALATION & DYNAMIC RE-WEIGHTING              │
+│    • Normal Mode (Day-to-day operations)                    │
+│    • Crisis Mode: Level 1-4 Disaster declared               │
+│    • Priority weights automatically tilt toward SLA & safety│
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 3. OPTIMIZATION ENGINE (Solver Execution)                   │
+│    • Gathers active Work Orders, Technicians, Depots        │
+│    • Preserves locked jobs (EN_ROUTE, IN_PROGRESS)          │
+│    • Solves candidate schedules using Greedy/SA/GA          │
+│    • Generates OptimizationRun with cost & SLA projections  │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 4. HUMAN-IN-THE-LOOP APPROVAL                               │
+│    • Dispatcher views Before vs. After delta metrics        │
+│    • Inspects per-technician Explainable AI reasons         │
+│    • Dispatcher clicks "Approve Plan" (commits to DB)       │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 5. REAL-TIME DISPATCH & FIELD EXECUTION                     │
+│    • WebSocket broadcast to Technician App / PWA            │
+│    • Technician: ACCEPT -> EN_ROUTE -> ARRIVE -> RESOLVE    │
+│    • Parts consumed and site completion notes logged        │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 6. VERIFICATION, RETROSPECTIVE & AUDIT LOGGING              │
+│    • Ticket marked VERIFIED -> CLOSED                       │
+│    • Real-time analytics, SLA trends, and audit trail saved │
+└──────────────────────────┘
+
+--------------------------------------------------------------------------------
+4. MATHEMATICAL FORMULATION (OPTIMIZATION ENGINE)
+--------------------------------------------------------------------------------
+The scheduling solver minimizes the composite multi-objective cost function:
+
+  Min Z = w1 * C_travel + w2 * C_sla + w3 * C_overtime + 
+          w4 * C_criticality + w5 * C_unassigned + w6 * C_detour
+
+Where:
+  • w1 (0.20): C_travel      = Total transit travel time and fuel consumption
+  • w2 (0.35): C_sla         = Financial penalty per minute of SLA deadline breach
+  • w3 (0.10): C_overtime    = Overtime labor cost beyond scheduled shift hours
+  • w4 (0.15): C_criticality = High-priority infrastructure weighting multiplier
+  • w5 (0.15): C_unassigned  = Penalty for unresolved / unassigned incident tickets
+  • w6 (0.05): C_detour      = Secondary travel time to depots for spare parts
+
+Hard Operational Constraints:
+  1. Skill Match: Skills(WorkOrder_i) ⊆ Skills(Technician_j)
+  2. Immutability: Status IN ('EN_ROUTE', 'ARRIVED', 'IN_PROGRESS') cannot be moved
+  3. Shift Limits: Total scheduled work <= Shift Duration + Max Allowed Overtime
+
+--------------------------------------------------------------------------------
+5. ENTERPRISE CONTAINER ARCHITECTURE & FILE STRUCTURE
+--------------------------------------------------------------------------------
+
+Repository Monorepo Layout:
+f:\i_p\crewrescue\
+├── apps/
+│   └── web/                           # React 19 + Vite 8 Dispatcher Console SPA
+│       ├── src/components/            # Reusable UI & Leaflet Map components
+│       ├── src/pages/                 # 12 Operational pages (Dashboard, Emergency, etc.)
+│       └── src/store/                 # Zustand Auth & State stores
+├── services/
+│   └── api/                           # Express 4 + Node.js 20 Backend REST API
+│       ├── src/models/                # 9 Mongoose schemas (Mongo 7)
+│       ├── src/routes/                # REST endpoints (auth, incidents, opt, triage)
+│       ├── src/socket/                # Socket.IO WebSocket server
+│       └── scripts/seed.js            # Automated 500-ticket database generator
+├── packages/
+│   └── shared/                        # Shared contracts (ROLES, SKILLS, ALGORITHMS)
+├── infrastructure/
+│   ├── docker/
+│   │   ├── api.Dockerfile             # Multi-stage Node Alpine API container
+│   │   ├── web.Dockerfile             # Multi-stage Vite + Nginx Alpine container
+│   │   └── nginx.conf                 # SPA routing & reverse proxy configuration
+│   └── compose/
+│       └── docker-compose.yml         # Container orchestration manifest
+└── docker-compose.yml                 # Root-level Docker Compose orchestrator
+
+Docker Multi-Container Network:
+  • Container 1: crewrescue-web    (Port 5173, 80) -> Nginx serving Vite SPA
+  • Container 2: crewrescue-api    (Port 5000)     -> Node.js Express REST/WebSocket
+  • Container 3: crewrescue-mongo  (Port 27017)    -> MongoDB 7 with volume persistence
+  • Container 4: crewrescue-redis  (Port 6379)     -> Redis 7 in-memory cache/queue
+
+--------------------------------------------------------------------------------
+6. PHASED IMPLEMENTATION ROADMAP
+--------------------------------------------------------------------------------
+
+PHASE 1: Core Operational Foundation (100% COMPLETE ✅)
+  [x] Multi-tenant MongoDB database schemas and indexing
+  [x] JWT Authentication & 11-role RBAC authorization middleware
+  [x] Database seeder generating 100 technicians, 500 tickets, 35 vehicles, 8 depots
+  [x] Incident lifecycle state machine and SLA deadline calculators
+  [x] AI NLP incident triage endpoint (Gemini API with keyword fallback)
+  [x] Emergency level declaration (Levels 0-4) and socket broadcasting
+  [x] Synchronous Greedy optimization solver with Before/After delta comparison
+  [x] Chaos / Storm simulator for scenario injection
+  [x] Interactive Leaflet dispatcher map with 900+ live geo markers
+  [x] Multi-container Docker deployment with Nginx reverse proxy
+
+PHASE 2: Advanced Heuristics & Intelligence (IN PROGRESS 🟡)
+  [ ] Simulated Annealing (SA) optimization solver for fast temperature cooling
+  [ ] Genetic Algorithm (GA) solver with chromosome crossover and mutation
+  [ ] Google OR-Tools Python solver worker for academic CP benchmarks
+  [ ] RAG (Retrieval-Augmented Generation) technician equipment manual copilot
+  [ ] Asynchronous BullMQ background worker queue with live progress polling
+
+PHASE 3: Mobile Workforce Execution & Offline PWA (UPCOMING 📅)
+  [ ] Dedicated mobile Progressive Web App (PWA) in apps/pwa
+  [ ] Offline-first IndexedDB storage allowing offline ticket viewing in dead zones
+  [ ] 1-Tap job state transitions (Accept, En Route, Arrive, In Progress, Resolve)
+  [ ] Part barcode scanning and camera photo attachment capture
+  [ ] 30-Second GPS location heartbeat emitting to live dispatcher map
+
+PHASE 4: Enterprise Scale, Security Hardening & GitOps (UPCOMING 📅)
+  [ ] Kubernetes Helm charts with Horizontal Pod Autoscaler (HPA)
+  [ ] GitHub Actions CI/CD pipeline (Linting, Docker build, Trivy security scan)
+  [ ] Multi-tenant billing and subscription tiers
+  [ ] Machine learning SLA breach prediction model based on historical telemetry
+  [ ] External notification fanout (Twilio SMS, Push API, SendGrid Email)
+
+--------------------------------------------------------------------------------
+7. DEFAULT SYSTEM CREDENTIALS & ACCESS ENDPOINTS
+--------------------------------------------------------------------------------
+Web Console Application : http://localhost:5173 (or http://localhost)
+REST API Endpoint       : http://localhost:5000/api
+Health Check Status     : http://localhost:5000/health
+Prometheus Metrics      : http://localhost:5000/metrics
+
+Default Seeded User Accounts:
+  1. Organization Administrator:
+     • Email    : admin@dhakapower.bd
+     • Password : Admin@CrewRescue2025
+     • Role     : ORG_ADMIN (Full system privileges)
+
+  2. Dispatcher Account:
+     • Email    : dispatcher@dhakapower.bd
+     • Password : Dispatch@2025
+     • Role     : DISPATCHER (Triage, Optimization, Dispatch Approval)
+
+================================================================================
+                    END OF SYSTEM PLAN DOCUMENT
+================================================================================

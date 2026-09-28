@@ -1,0 +1,245 @@
+name: CrewRescue CI/CD Pipeline
+
+on:
+  push:
+    branches: [master, main, develop]
+  pull_request:
+    branches: [master, main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_API: ghcr.io/${{ github.repository }}/crewrescue-api
+  IMAGE_WEB: ghcr.io/${{ github.repository }}/crewrescue-web
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Stage 1: Code Quality & Linting
+  # ─────────────────────────────────────────────────────────────────────────────
+  lint:
+    name: 🔍 Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        working-directory: crewrescue
+        run: npm ci
+
+      - name: Lint API
+        working-directory: crewrescue
+        run: npm run lint --workspace=services/api --if-present || true
+
+      - name: Lint Web
+        working-directory: crewrescue
+        run: npm run lint --workspace=apps/web --if-present || true
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Stage 2: Security Audit
+  # ─────────────────────────────────────────────────────────────────────────────
+  security:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        working-directory: crewrescue
+        run: npm ci
+
+      - name: npm audit (API)
+        working-directory: crewrescue/services/api
+        run: npm audit --audit-level=high || true
+
+      - name: npm audit (Web)
+        working-directory: crewrescue/apps/web
+        run: npm audit --audit-level=high || true
+
+      - name: OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'CrewRescue AI'
+          path: './crewrescue'
+          format: 'HTML'
+          out: 'reports/dependency-check'
+          args: >
+            --enableRetired
+        continue-on-error: true
+
+      - name: Upload OWASP report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-check-report
+          path: reports/dependency-check/
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Stage 3: Build Web App
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-web:
+    name: 🏗️ Build Web App
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        working-directory: crewrescue
+        run: npm ci
+
+      - name: Build Vite app
+        working-directory: crewrescue
+        run: npm run build --workspace=apps/web
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'http://localhost:5000/api' }}
+          VITE_WS_URL:  ${{ vars.VITE_WS_URL  || 'http://localhost:5000' }}
+
+      - name: Upload web build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: crewrescue/apps/web/dist/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Stage 4: Docker Build & Push
+  # ─────────────────────────────────────────────────────────────────────────────
+  docker:
+    name: 🐳 Build & Push Docker Images
+    runs-on: ubuntu-latest
+    needs: [build-web, security]
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download web dist
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: crewrescue/apps/web/dist/
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for API image
+        id: meta-api
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_API }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: crewrescue
+          file: crewrescue/infrastructure/docker/api.Dockerfile
+          push: true
+          tags: ${{ steps.meta-api.outputs.tags }}
+          labels: ${{ steps.meta-api.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata for Web image
+        id: meta-web
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_WEB }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Web image
+        uses: docker/build-push-action@v5
+        with:
+          context: crewrescue
+          file: crewrescue/infrastructure/docker/web.Dockerfile
+          push: true
+          tags: ${{ steps.meta-web.outputs.tags }}
+          labels: ${{ steps.meta-web.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Stage 5: Trivy Container Security Scan
+  # ─────────────────────────────────────────────────────────────────────────────
+  trivy:
+    name: 🛡️ Trivy Security Scan
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    permissions:
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan API image for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_API }}:latest
+          format: 'sarif'
+          output: 'trivy-api.sarif'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
+      - name: Upload Trivy API scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-api.sarif'
+          category: 'trivy-api'
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Stage 6: Deployment Notification
+  # ─────────────────────────────────────────────────────────────────────────────
+  notify:
+    name: 📣 Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [trivy]
+    if: always()
+    steps:
+      - name: Build Summary
+        run: |
+          echo "## CrewRescue AI — Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Audit | ${{ needs.security.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Web Build | ${{ needs.build-web.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Push | ${{ needs.docker.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trivy Scan | ${{ needs.trivy.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\` | **SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY

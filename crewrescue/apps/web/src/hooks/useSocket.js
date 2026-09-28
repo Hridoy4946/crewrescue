@@ -80,5 +80,5 @@ export function useSocket() {
     };
   }, []);
 
-  return socketInstance;
+  return { socket: socketInstance };
 }

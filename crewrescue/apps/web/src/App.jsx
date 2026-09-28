@@ -11,6 +11,7 @@ import TechniciansPage  from './pages/TechniciansPage.jsx';
 import OptimizationPage from './pages/OptimizationPage.jsx';
 import EmergencyPage    from './pages/EmergencyPage.jsx';
 import AITriagePage     from './pages/AITriagePage.jsx';
+import CopilotPage      from './pages/CopilotPage.jsx';
 import MapPage          from './pages/MapPage.jsx';
 import AnalyticsPage    from './pages/AnalyticsPage.jsx';
 import VehiclesPage     from './pages/VehiclesPage.jsx';
@@ -33,7 +34,7 @@ function PlaceholderPage({ title }) {
 
 function ProtectedLayout() {
   const { stats } = useDashboardStore();
-  useSocket(); // Connect WebSocket
+  useSocket(); // Connect WebSocket (establishes singleton connection)
   return (
     <div className="app-shell">
       <Sidebar stats={stats} />
@@ -49,6 +50,7 @@ function ProtectedLayout() {
           <Route path="/depots"      element={<DepotsPage />} />
           <Route path="/analytics"   element={<AnalyticsPage />} />
           <Route path="/ai"          element={<AITriagePage />} />
+          <Route path="/copilot"     element={<CopilotPage />} />
           <Route path="/settings"    element={<SettingsPage />} />
           <Route path="*"            element={<Navigate to="/" replace />} />
         </Routes>

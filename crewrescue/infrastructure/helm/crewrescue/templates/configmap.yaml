@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "crewrescue.fullname" . }}-config
+  labels:
+    {{- include "crewrescue.labels" . | nindent 4 }}
+data:
+  NODE_ENV: {{ .Values.api.env.NODE_ENV | quote }}
+  PORT: {{ .Values.api.env.PORT | quote }}
+  RATE_LIMIT_MAX: {{ .Values.api.env.RATE_LIMIT_MAX | quote }}
+  RATE_LIMIT_WINDOW_MS: {{ .Values.api.env.RATE_LIMIT_WINDOW_MS | quote }}
+  MONGODB_URI: {{ .Values.mongodb.uri | quote }}
+  REDIS_URL: {{ .Values.redis.url | quote }}
+  CORS_ORIGINS: "https://app.{{ .Values.global.domain }},https://field.{{ .Values.global.domain }}"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "crewrescue.fullname" . }}-secrets
+  labels:
+    {{- include "crewrescue.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  JWT_ACCESS_SECRET: {{ .Values.secrets.jwtAccessSecret | quote }}
+  JWT_REFRESH_SECRET: {{ .Values.secrets.jwtRefreshSecret | quote }}
+  GEMINI_API_KEY: {{ .Values.secrets.geminiApiKey | quote }}
+  EMAIL_API_KEY: {{ .Values.secrets.emailApiKey | quote }}
+  TWILIO_ACCOUNT_SID: {{ .Values.secrets.twilioAccountSid | quote }}
+  TWILIO_AUTH_TOKEN: {{ .Values.secrets.twilioAuthToken | quote }}
+  TWILIO_FROM: {{ .Values.secrets.twilioFrom | quote }}
