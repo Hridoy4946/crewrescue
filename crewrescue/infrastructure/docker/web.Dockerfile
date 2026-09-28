@@ -9,14 +9,14 @@ WORKDIR /app
 # Copy root monorepo manifests
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json ./packages/shared/
-COPY apps/web/package.json ./apps/web/
+COPY frontend/web/package.json ./frontend/web/
 
 # Install dependencies
 RUN npm ci --workspace=web --include-workspace-root
 
 # Copy frontend source and shared package
 COPY packages/shared ./packages/shared
-COPY apps/web ./apps/web
+COPY frontend/web ./frontend/web
 
 # Build static production bundle
 RUN npm run build --workspace=web
@@ -28,7 +28,7 @@ FROM nginx:alpine AS runner
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy built frontend assets from builder stage
-COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+COPY --from=builder /app/frontend/web/dist /usr/share/nginx/html
 
 # Copy custom Nginx configuration
 COPY infrastructure/docker/nginx.conf /etc/nginx/conf.d/default.conf

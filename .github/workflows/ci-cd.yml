@@ -33,11 +33,11 @@ jobs:
 
       - name: Lint API
         working-directory: crewrescue
-        run: npm run lint --workspace=services/api --if-present || true
+        run: npm run lint --workspace=backend/api --if-present || true
 
       - name: Lint Web
         working-directory: crewrescue
-        run: npm run lint --workspace=apps/web --if-present || true
+        run: npm run lint --workspace=frontend/web --if-present || true
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Stage 2: Security Audit
@@ -59,11 +59,11 @@ jobs:
         run: npm ci
 
       - name: npm audit (API)
-        working-directory: crewrescue/services/api
+        working-directory: crewrescue/backend/api
         run: npm audit --audit-level=high || true
 
       - name: npm audit (Web)
-        working-directory: crewrescue/apps/web
+        working-directory: crewrescue/frontend/web
         run: npm audit --audit-level=high || true
 
       - name: OWASP Dependency-Check
@@ -106,7 +106,7 @@ jobs:
 
       - name: Build Vite app
         working-directory: crewrescue
-        run: npm run build --workspace=apps/web
+        run: npm run build --workspace=frontend/web
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL || 'http://localhost:5000/api' }}
           VITE_WS_URL:  ${{ vars.VITE_WS_URL  || 'http://localhost:5000' }}
@@ -115,7 +115,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: web-dist
-          path: crewrescue/apps/web/dist/
+          path: crewrescue/frontend/web/dist/
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────────
@@ -137,7 +137,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: web-dist
-          path: crewrescue/apps/web/dist/
+          path: crewrescue/frontend/web/dist/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

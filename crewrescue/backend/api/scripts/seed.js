@@ -2,7 +2,7 @@
 /**
  * CrewRescue AI — Database Seeder
  * Generates: 1 org, 2 users, 100 technicians, 35 vehicles, 8 depots, 300 assets, 500 work orders
- * Run: npm run seed --workspace=services/api
+ * Run: npm run seed --workspace=backend/api
  */
 import 'dotenv/config';
 import mongoose from 'mongoose';

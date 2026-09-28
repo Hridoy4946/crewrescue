@@ -9,14 +9,14 @@ WORKDIR /app
 # Copy root monorepo manifests
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json ./packages/shared/
-COPY services/api/package.json ./services/api/
+COPY backend/api/package.json ./backend/api/
 
 # Install dependencies for workspace
 RUN npm ci --workspace=@crewrescue/api --include-workspace-root
 
 # Copy source code
 COPY packages/shared ./packages/shared
-COPY services/api ./services/api
+COPY backend/api ./backend/api
 
 # ── Stage 2: Production Runner ──
 FROM node:20-alpine AS runner
@@ -39,4 +39,4 @@ USER appuser
 
 EXPOSE 5000
 
-CMD ["node", "services/api/src/index.js"]
+CMD ["node", "backend/api/src/index.js"]

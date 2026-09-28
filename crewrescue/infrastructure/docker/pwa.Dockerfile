@@ -9,14 +9,14 @@ WORKDIR /app
 # Copy root monorepo manifests
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json ./packages/shared/
-COPY apps/pwa/package.json ./apps/pwa/
+COPY frontend/pwa/package.json ./frontend/pwa/
 
 # Install dependencies
 RUN npm ci --workspace=pwa --include-workspace-root
 
 # Copy PWA source and shared package
 COPY packages/shared ./packages/shared
-COPY apps/pwa ./apps/pwa
+COPY frontend/pwa ./frontend/pwa
 
 # Build static production bundle with service worker
 RUN npm run build --workspace=pwa
@@ -28,7 +28,7 @@ FROM nginx:alpine AS runner
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy built PWA assets from builder stage
-COPY --from=builder /app/apps/pwa/dist /usr/share/nginx/html
+COPY --from=builder /app/frontend/pwa/dist /usr/share/nginx/html
 
 # Copy custom Nginx configuration
 COPY infrastructure/docker/nginx.conf /etc/nginx/conf.d/default.conf
