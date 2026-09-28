@@ -372,7 +372,7 @@ export default function OptimizationPage() {
 
   // ── Socket.IO live updates ─────────────────────────────────────────────────
   useEffect(() => {
-    if (!socket) return;
+    if (!socket?.on) return;
 
     socket.on('optimization:progress', (data) => {
       setLiveProgress(prev => ({ ...prev, [data.runId]: data }));
@@ -390,9 +390,9 @@ export default function OptimizationPage() {
     });
 
     return () => {
-      socket.off('optimization:progress');
-      socket.off('optimization:completed');
-      socket.off('optimization:failed');
+      socket.off?.('optimization:progress');
+      socket.off?.('optimization:completed');
+      socket.off?.('optimization:failed');
     };
   }, [socket]);
 

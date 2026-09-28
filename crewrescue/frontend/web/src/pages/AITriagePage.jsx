@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Zap, Send, Tag, Wrench, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Zap, Send, Tag, Wrench, Clock, AlertTriangle, CheckCircle, Bot, Sparkles, Copy, Check } from 'lucide-react';
 import api from '../lib/api.js';
 import toast from 'react-hot-toast';
 
@@ -11,6 +11,13 @@ const EXAMPLES = [
   'HVAC compressor failure at Motijheel data center. Room at 32°C and climbing fast.',
   'Fiber cable damaged by road construction near Mirpur-10. 500 customers affected.',
   'Transformer explosion at Tejgaon industrial area. Sparks visible, area evacuated.',
+];
+
+const DISPATCHER_PROMPTS = [
+  'Who is best for fiber optic work in Gulshan?',
+  'Show available technicians in Mirpur',
+  'Current SLA and emergency status',
+  'How to isolate an 11kV transformer fault',
 ];
 
 export default function AITriagePage() {
@@ -58,16 +65,35 @@ export default function AITriagePage() {
     } finally { setCreating(false); }
   }
 
-  async function handleDispatcherQuery(e) {
-    e.preventDefault();
-    if (!dispatcherQuery.trim()) return;
+  const [copied, setCopied] = useState(false);
+
+  async function runDispatcherQuery(queryText) {
+    const q = queryText || dispatcherQuery;
+    if (!q?.trim()) return;
+    setDispatcherQuery(q);
     setQueryLoading(true);
     setQueryResult(null);
     try {
-      const { data } = await api.post('/ai/dispatcher-query', { query: dispatcherQuery });
-      setQueryResult(data.response);
-    } catch { toast.error('Query failed'); }
-    finally { setQueryLoading(false); }
+      const { data } = await api.post('/ai/dispatcher-query', { query: q });
+      setQueryResult({ text: data.response, method: data.method });
+    } catch {
+      toast.error('Query failed');
+    } finally {
+      setQueryLoading(false);
+    }
+  }
+
+  async function handleDispatcherQuery(e) {
+    e?.preventDefault?.();
+    runDispatcherQuery(dispatcherQuery);
+  }
+
+  function copyResult() {
+    if (!queryResult?.text) return;
+    navigator.clipboard.writeText(queryResult.text);
+    setCopied(true);
+    toast.success('Copied to clipboard');
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -240,24 +266,82 @@ export default function AITriagePage() {
 
           {/* Dispatcher Assistant */}
           <div className="card">
-            <div className="card-header">
-              <div className="card-title">💬 Dispatcher Assistant</div>
+            <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Bot size={15} style={{ color: 'var(--brand-400)' }} />
+                <span>Dispatcher Assistant</span>
+              </div>
+              <span className="badge badge-info" style={{ fontSize: '0.62rem' }}>Live Telemetry & RAG</span>
             </div>
             <div className="card-body">
+              {/* Quick Prompts */}
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 6 }}>Try operational quick queries:</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {DISPATCHER_PROMPTS.map(p => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => runDispatcherQuery(p)}
+                      disabled={queryLoading}
+                      style={{
+                        padding: '4px 8px', borderRadius: 12, background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-color)', fontSize: '0.7rem', color: 'var(--text-secondary)',
+                        cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand-400)'; e.currentTarget.style.color = 'var(--brand-400)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <form onSubmit={handleDispatcherQuery} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <input
-                  className="form-input"
-                  placeholder="Ask anything… e.g. 'Who is best for fiber optic work in Gulshan?'"
-                  value={dispatcherQuery}
-                  onChange={e => setDispatcherQuery(e.target.value)}
-                />
-                <button type="submit" className="btn btn-ghost btn-sm" disabled={queryLoading || !dispatcherQuery.trim()}>
-                  {queryLoading ? <><div className="loading-spinner" style={{ width: 12, height: 12, borderWidth: 2 }} /> Thinking…</> : 'Ask AI'}
-                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    className="form-input"
+                    placeholder="Ask anything… e.g. 'Who is best for fiber optic work in Gulshan?'"
+                    value={dispatcherQuery}
+                    onChange={e => setDispatcherQuery(e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <button type="submit" className="btn btn-primary btn-sm" disabled={queryLoading || !dispatcherQuery.trim()} style={{ whiteSpace: 'nowrap' }}>
+                    {queryLoading ? <><div className="loading-spinner" style={{ width: 12, height: 12, borderWidth: 2 }} /> Thinking…</> : 'Ask AI'}
+                  </button>
+                </div>
               </form>
+
               {queryResult && (
-                <div style={{ marginTop: 12, padding: '12px 14px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.6, borderLeft: '3px solid var(--brand-500)' }}>
-                  {queryResult}
+                <div style={{
+                  marginTop: 14, padding: '14px 16px', background: 'var(--bg-elevated)',
+                  borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--text-primary)',
+                  lineHeight: 1.6, borderLeft: '3px solid var(--brand-500)', position: 'relative',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{
+                      fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                      background: queryResult.method === 'gemini' ? 'rgba(139,92,246,0.15)' : 'rgba(59,130,246,0.15)',
+                      color: queryResult.method === 'gemini' ? '#A78BFA' : 'var(--brand-400)',
+                    }}>
+                      {queryResult.method === 'gemini' ? '🤖 Gemini 1.5 Flash' : '⚡ Live Ops Engine'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={copyResult}
+                      style={{
+                        background: 'none', border: 'none', color: 'var(--text-muted)',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.7rem',
+                      }}
+                    >
+                      {copied ? <Check size={12} style={{ color: 'var(--success)' }} /> : <Copy size={12} />}
+                      <span>{copied ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                  <div style={{ whiteSpace: 'pre-line' }}>
+                    {queryResult.text}
+                  </div>
                 </div>
               )}
             </div>

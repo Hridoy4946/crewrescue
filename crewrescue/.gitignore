@@ -62,3 +62,9 @@ secrets/
 .cache/
 .parcel-cache/
 .eslintcache
+
+# Dev/test utility scripts (not for production)
+backend/api/scripts/testKey.mjs
+
+# Planning and internal documentation
+SYSTEM_PLAN.txt

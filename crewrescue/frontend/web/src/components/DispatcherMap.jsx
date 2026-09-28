@@ -63,7 +63,7 @@ export default function DispatcherMap({ height = '100%' }) {
   const [incidents, setIncidents]     = useState([]);
   const [depots, setDepots]           = useState([]);
   const [layers, setLayers]           = useState({ technicians: true, incidents: true, depots: true });
-  const socket = useSocket();
+  const { socket } = useSocket();
 
   useEffect(() => {
     async function load() {
@@ -87,7 +87,7 @@ export default function DispatcherMap({ height = '100%' }) {
 
   // Listen for real-time location updates
   useEffect(() => {
-    if (!socket) return;
+    if (!socket?.on) return;
     const handler = ({ technicianId, location }) => {
       setTechnicians(prev => prev.map(t =>
         t._id === technicianId
@@ -96,19 +96,19 @@ export default function DispatcherMap({ height = '100%' }) {
       ));
     };
     socket.on('technician:location_updated', handler);
-    return () => socket.off('technician:location_updated', handler);
+    return () => socket.off?.('technician:location_updated', handler);
   }, [socket]);
 
   // Listen for new incidents
   useEffect(() => {
-    if (!socket) return;
+    if (!socket?.on) return;
     const handler = ({ incident }) => {
-      if (incident.location?.coordinates) {
+      if (incident?.location?.coordinates) {
         setIncidents(prev => [incident, ...prev]);
       }
     };
     socket.on('incident:created', handler);
-    return () => socket.off('incident:created', handler);
+    return () => socket.off?.('incident:created', handler);
   }, [socket]);
 
   const toggleLayer = (key) => setLayers(prev => ({ ...prev, [key]: !prev[key] }));

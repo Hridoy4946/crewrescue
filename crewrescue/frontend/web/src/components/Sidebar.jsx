@@ -19,9 +19,10 @@ const NAV = [
     { to: '/depots',      icon: Warehouse,label: 'Depots' },
   ]},
   { label: 'Intelligence', items: [
+    { to: '/assistant',   icon: Bot,       label: 'AI Assistant',  badgeAI: true },
     { to: '/analytics',   icon: BarChart3, label: 'Analytics' },
     { to: '/ai',          icon: Zap,       label: 'AI Triage' },
-    { to: '/copilot',     icon: Bot,       label: 'Copilot (RAG)', badgeNew: true },
+    { to: '/copilot',     icon: Bot,       label: 'Copilot (RAG)' },
   ]},
 ];
 
@@ -80,6 +81,15 @@ export default function Sidebar({ stats }) {
                       borderRadius: 8, background: 'rgba(139,92,246,0.2)',
                       color: '#8B5CF6', border: '1px solid rgba(139,92,246,0.3)', fontWeight: 700,
                     }}>NEW</span>
+                  )}
+                  {item.badgeAI && (
+                    <span style={{
+                      marginLeft: 'auto', fontSize: '0.55rem', padding: '1px 6px',
+                      borderRadius: 8,
+                      background: 'linear-gradient(90deg, rgba(79,70,229,0.35), rgba(124,58,237,0.35))',
+                      color: '#a5b4fc', border: '1px solid rgba(139,92,246,0.4)', fontWeight: 700,
+                      boxShadow: '0 0 6px rgba(139,92,246,0.3)',
+                    }}>AI</span>
                   )}
                 </NavLink>
               );

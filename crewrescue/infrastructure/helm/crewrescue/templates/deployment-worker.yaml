@@ -24,7 +24,7 @@ spec:
         - name: worker
           image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}"
           imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
-          command: ["node", "src/workers/optimizationWorker.js"]
+          command: ["node", "backend/api/src/workers/optimizationWorker.js"]
           envFrom:
             - configMapRef:
                 name: {{ include "crewrescue.fullname" . }}-config

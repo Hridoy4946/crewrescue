@@ -12,6 +12,7 @@ import OptimizationPage from './pages/OptimizationPage.jsx';
 import EmergencyPage    from './pages/EmergencyPage.jsx';
 import AITriagePage     from './pages/AITriagePage.jsx';
 import CopilotPage      from './pages/CopilotPage.jsx';
+import AIAssistantPage  from './pages/AIAssistantPage.jsx';
 import MapPage          from './pages/MapPage.jsx';
 import AnalyticsPage    from './pages/AnalyticsPage.jsx';
 import VehiclesPage     from './pages/VehiclesPage.jsx';
@@ -32,6 +33,47 @@ function PlaceholderPage({ title }) {
   );
 }
 
+import React from 'react';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Unhandled UI Error caught by ErrorBoundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: 32, textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', marginBottom: 16 }}>⚠️</div>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>Interface Error</h2>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: 480, fontSize: '0.9rem', marginBottom: 16 }}>
+            Something went wrong while rendering this view.
+          </p>
+          <pre style={{ background: 'rgba(0,0,0,0.4)', padding: '12px 16px', borderRadius: 8, fontSize: '0.75rem', color: '#f87171', maxWidth: 600, overflowX: 'auto', marginBottom: 20 }}>
+            {this.state.error?.message || String(this.state.error)}
+          </pre>
+          <button
+            onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }}
+            style={{ padding: '8px 20px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Reload Interface
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function ProtectedLayout() {
   const { stats } = useDashboardStore();
   useSocket(); // Connect WebSocket (establishes singleton connection)
@@ -39,21 +81,24 @@ function ProtectedLayout() {
     <div className="app-shell">
       <Sidebar stats={stats} />
       <main className="main-content" style={{ gridColumn: 2, gridRow: '1 / span 2', overflow: 'auto' }}>
-        <Routes>
-          <Route path="/"            element={<DashboardPage />} />
-          <Route path="/map"         element={<MapPage />} />
-          <Route path="/incidents"   element={<IncidentsPage />} />
-          <Route path="/optimize"    element={<OptimizationPage />} />
-          <Route path="/emergency"   element={<EmergencyPage />} />
-          <Route path="/technicians" element={<TechniciansPage />} />
-          <Route path="/vehicles"    element={<VehiclesPage />} />
-          <Route path="/depots"      element={<DepotsPage />} />
-          <Route path="/analytics"   element={<AnalyticsPage />} />
-          <Route path="/ai"          element={<AITriagePage />} />
-          <Route path="/copilot"     element={<CopilotPage />} />
-          <Route path="/settings"    element={<SettingsPage />} />
-          <Route path="*"            element={<Navigate to="/" replace />} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/"            element={<DashboardPage />} />
+            <Route path="/map"         element={<MapPage />} />
+            <Route path="/incidents"   element={<IncidentsPage />} />
+            <Route path="/optimize"    element={<OptimizationPage />} />
+            <Route path="/emergency"   element={<EmergencyPage />} />
+            <Route path="/technicians" element={<TechniciansPage />} />
+            <Route path="/vehicles"    element={<VehiclesPage />} />
+            <Route path="/depots"      element={<DepotsPage />} />
+            <Route path="/analytics"   element={<AnalyticsPage />} />
+            <Route path="/ai"          element={<AITriagePage />} />
+            <Route path="/copilot"     element={<CopilotPage />} />
+            <Route path="/assistant"   element={<AIAssistantPage />} />
+            <Route path="/settings"    element={<SettingsPage />} />
+            <Route path="*"            element={<Navigate to="/" replace />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
     </div>
   );

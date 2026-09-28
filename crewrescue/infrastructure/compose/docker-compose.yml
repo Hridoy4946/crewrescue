@@ -73,7 +73,7 @@ services:
       dockerfile: infrastructure/docker/api.Dockerfile
     container_name: crewrescue-worker
     restart: unless-stopped
-    command: ["node", "src/workers/optimizationWorker.js"]
+    command: ["node", "backend/api/src/workers/optimizationWorker.js"]
     environment:
       NODE_ENV: production
       MONGODB_URI: mongodb://mongo:27017/crewrescue

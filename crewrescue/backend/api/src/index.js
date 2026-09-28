@@ -56,7 +56,7 @@ app.use('/api/', limiter);
 // Stricter limiter on auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: process.env.NODE_ENV === 'production' ? 20 : 100,
   message: { success: false, error: 'Too many login attempts. Try again in 15 minutes.' },
 });
 

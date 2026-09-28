@@ -1,21 +1,29 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // CrewRescue AI — RAG Copilot API Routes
 //
+// POST /api/ai/chat                 - Full conversational AI assistant (multi-turn)
 // POST /api/ai/copilot              - Field technician / dispatcher copilot query
 // GET  /api/ai/knowledge            - List knowledge base documents
 // POST /api/ai/knowledge            - Add a new knowledge document
 // DELETE /api/ai/knowledge/:id      - Remove a document
-// POST /api/ai/triage               - AI incident triage (unchanged)
-// POST /api/ai/dispatcher-query     - Dispatcher natural language assistant (unchanged)
+// POST /api/ai/triage               - AI incident triage
+// POST /api/ai/dispatcher-query     - Dispatcher natural language assistant
 // ─────────────────────────────────────────────────────────────────────────────
 
 import express from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { logger } from '../config/logger.js';
 import KnowledgeDoc from '../models/KnowledgeDoc.js';
+import Technician from '../models/Technician.js';
+import WorkOrder from '../models/WorkOrder.js';
+import Emergency from '../models/Emergency.js';
 
 const router = express.Router();
 router.use(authenticate);
+
+// ── Active Gemini model (detected from API key capabilities) ──────────────────
+const GEMINI_MODEL       = 'gemini-flash-latest';
+const GEMINI_EMBED_MODEL = 'gemini-embedding-001';
 
 // ── Keyword-based fallback classifier (no LLM needed) ─────────────────────────
 function keywordClassify(text) {
@@ -80,7 +88,7 @@ function cosineSimilarity(a, b) {
 
 // ── Keyword-based document retrieval (fallback) ────────────────────────────────
 function keywordSearch(docs, query, topK = 5) {
-  const queryWords = query.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+  const queryWords = query.toLowerCase().split(/\s+/).filter((w) => w.length >= 2);
   return docs
     .map((doc) => {
       const text  = `${doc.title} ${doc.content} ${doc.keywords?.join(' ')}`.toLowerCase();
@@ -109,7 +117,7 @@ router.post('/triage', async (req, res) => {
         const { GoogleGenerativeAI } = await import('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(geminiKey);
         const model = genAI.getGenerativeModel({
-          model: 'gemini-1.5-flash',
+          model: GEMINI_MODEL,
           generationConfig: { responseMimeType: 'application/json', temperature: 0.1 },
         });
 
@@ -148,28 +156,130 @@ Incident description: "${text.replace(/"/g, "'")}"`
 router.post('/dispatcher-query', async (req, res) => {
   try {
     const { query } = req.body;
-    if (!query) return res.status(400).json({ success: false, error: 'Query required' });
+    if (!query || !query.trim()) return res.status(400).json({ success: false, error: 'Query required' });
 
-    const geminiKey = process.env.GEMINI_API_KEY;
-    if (!geminiKey || geminiKey === 'your_gemini_api_key_here') {
-      return res.json({
-        success: true,
-        response: `[AI Stub] Query received: "${query}". Configure GEMINI_API_KEY in .env to enable real AI responses.`,
-        method: 'stub',
-      });
+    const qLower = query.toLowerCase();
+    const orgId = req.organizationId;
+
+    // Fetch live operational context from DB
+    const [openWOCount, criticalWOCount, activeEmergency, totalTechs, availableTechs] = await Promise.all([
+      WorkOrder.countDocuments({ organizationId: orgId, status: { $nin: ['RESOLVED', 'VERIFIED', 'CLOSED'] } }),
+      WorkOrder.countDocuments({ organizationId: orgId, severity: 'CRITICAL', status: { $nin: ['RESOLVED', 'VERIFIED', 'CLOSED'] } }),
+      Emergency.findOne({ organizationId: orgId, isActive: true }).sort({ createdAt: -1 }).lean(),
+      Technician.countDocuments({ organizationId: orgId, isActive: true }),
+      Technician.countDocuments({ organizationId: orgId, isActive: true, status: 'AVAILABLE' }),
+    ]);
+
+    // Check if query is asking for technicians
+    const territories = ['Gulshan', 'Uttara', 'Dhanmondi', 'Mirpur', 'Tejgaon', 'Motijheel', 'Wari', 'Mohammadpur', 'Banani', 'Badda', 'Khilgaon'];
+    const matchedTerritory = territories.find(t => qLower.includes(t.toLowerCase()));
+
+    // Skill detection mapping
+    const skillKeywords = {
+      FIBER_OPTIC: ['fiber', 'optical', 'splice', 'otdr'],
+      ELECTRICAL: ['electric', 'wiring', 'breaker', 'short circuit'],
+      HIGH_VOLTAGE: ['high voltage', '11kv', '33kv', 'substation', 'switchgear', 'loto'],
+      TRANSFORMER: ['transformer', 'dga', 'bushing', 'tap changer', 'oil'],
+      GENERATOR: ['generator', 'diesel', 'genset', 'avr', 'alternator'],
+      HVAC: ['hvac', 'chiller', 'cooling', 'compressor', 'refrigerant', 'ac '],
+      WATER_SYSTEMS: ['water', 'pump', 'pipe', 'plumbing', 'valve'],
+      NETWORKING: ['network', 'switch', 'router', 'ethernet', 'lan'],
+      SAFETY_OFFICER: ['safety', 'arc flash', 'ppe', 'confined space', 'shock', 'hazard'],
+    };
+
+    let matchedSkill = null;
+    for (const [skill, kws] of Object.entries(skillKeywords)) {
+      if (kws.some(kw => qLower.includes(kw))) {
+        matchedSkill = skill;
+        break;
+      }
     }
 
-    const { GoogleGenerativeAI } = await import('@google/generative-ai');
-    const genAI = new GoogleGenerativeAI(geminiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    // Try Gemini if key is provided and valid
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (geminiKey && geminiKey !== 'your_gemini_api_key_here') {
+      try {
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(geminiKey);
+        const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
-    const prompt = `You are an AI assistant for emergency field-service dispatchers at a utility company.
-Answer the following dispatcher query concisely and practically. Limit to 3-4 sentences.
+        const prompt = `You are CrewRescue Dispatcher Copilot — an expert operations assistant for utility dispatchers.
+Live system operational metrics:
+- Active Unresolved Tickets: ${openWOCount} (${criticalWOCount} CRITICAL)
+- Active Emergency: ${activeEmergency ? `${activeEmergency.level} - ${activeEmergency.title}` : 'None (Normal L0 operations)'}
+- Total Fleet Technicians: ${totalTechs} (${availableTechs} currently AVAILABLE)
 
+Answer the dispatcher query concisely and practically in 3-4 sentences. Include actionable next steps.
 Query: "${query}"`;
 
-    const result = await model.generateContent(prompt);
-    res.json({ success: true, response: result.response.text(), method: 'gemini' });
+        const result = await model.generateContent(prompt);
+        return res.json({ success: true, response: result.response.text(), method: 'gemini' });
+      } catch (geminiErr) {
+        logger.warn('Gemini dispatcher query error, using heuristic fallback:', geminiErr.message);
+      }
+    }
+
+    // Heuristic intelligent operational response when Gemini is not configured or offline:
+    let responseText = '';
+
+    // 1. Technician query
+    if (matchedSkill || matchedTerritory || qLower.includes('who') || qLower.includes('technician') || qLower.includes('tech') || qLower.includes('crew')) {
+      const techFilter = { organizationId: orgId, isActive: true };
+      if (matchedTerritory) techFilter.territory = new RegExp(`^${matchedTerritory}$`, 'i');
+      if (matchedSkill) techFilter['skills.skillId'] = matchedSkill;
+
+      let candidateTechs = await Technician.find(techFilter)
+        .sort({ status: 1, 'performance.rating': -1 })
+        .limit(4)
+        .lean();
+
+      // If strict filter yielded nothing, search territory without skill constraint
+      if (candidateTechs.length === 0 && matchedTerritory) {
+        candidateTechs = await Technician.find({ organizationId: orgId, isActive: true, territory: new RegExp(`^${matchedTerritory}$`, 'i') })
+          .sort({ 'performance.rating': -1 })
+          .limit(3)
+          .lean();
+      }
+
+      if (candidateTechs.length > 0) {
+        const skillLabel = matchedSkill ? matchedSkill.replace(/_/g, ' ') : 'General Maintenance';
+        const territoryLabel = matchedTerritory ? `in ${matchedTerritory}` : 'across all territories';
+        const techList = candidateTechs.map((t, idx) => {
+          const skillsStr = t.skills?.map(s => s.skillId.replace(/_/g, ' ')).join(', ') || 'General';
+          return `${idx + 1}. **${t.name}** (${t.status}, Rating: ${t.performance?.rating ?? 4.5}⭐, Phone: ${t.phone || 'N/A'})\n   • Territory: ${t.territory} | Skills: ${skillsStr}`;
+        }).join('\n');
+
+        responseText = `Recommended technicians for **${skillLabel}** ${territoryLabel}:\n\n${techList}\n\n💡 *Dispatch tip: Prioritize technicians in AVAILABLE status to prevent overtime penalty.*`;
+      } else {
+        responseText = `Currently no specialized technicians found for ${matchedSkill || 'this role'} in ${matchedTerritory || 'this territory'}. Total available technicians in fleet: ${availableTechs} of ${totalTechs}. Recommend re-routing from an adjacent district or triggering the Optimization Engine.`;
+      }
+    }
+    // 2. Outage / Emergency / SLA query
+    else if (qLower.includes('emergency') || qLower.includes('sla') || qLower.includes('status') || qLower.includes('critical') || qLower.includes('outage') || qLower.includes('how many')) {
+      const approachingSLA = await WorkOrder.countDocuments({
+        organizationId: orgId,
+        status: { $nin: ['RESOLVED', 'VERIFIED', 'CLOSED'] },
+        'sla.resolutionDeadline': { $gte: new Date(), $lte: new Date(Date.now() + 60 * 60 * 1000) },
+      });
+
+      responseText = `📊 **Current Dispatch Telemetry Summary**:\n• Active Unresolved Incidents: **${openWOCount}**\n• Critical Incidents: **${criticalWOCount}**\n• Approaching SLA Breach (<60m): **${approachingSLA}**\n• Available Technicians: **${availableTechs}** / **${totalTechs}**\n• Disaster Status: **${activeEmergency ? `${activeEmergency.level} - ${activeEmergency.title}` : 'L0 (Normal Day-to-Day Mode)'}**\n\nRecommended Action: Navigate to the **Optimization** tab to execute Simulated Annealing or Genetic Algorithm scheduling to clear high-risk tickets.`;
+    }
+    // 3. Equipment / Knowledge manual query
+    else {
+      const matchedDocs = await KnowledgeDoc.find({ isActive: true }).lean();
+      const relevant = keywordSearch(matchedDocs, query, 2);
+      if (relevant.length > 0) {
+        responseText = `📖 **Equipment Manual Procedure: ${relevant[0].title}**\n*Category: ${relevant[0].category} · Source: ${relevant[0].source || 'Standard Operating Procedure'}*\n\n${relevant[0].content.slice(0, 380)}...\n\n🔗 For complete technical documentation, open the **Copilot (RAG)** tab in the sidebar.`;
+      } else {
+        responseText = `CrewRescue Dispatch Assistant operational. Currently tracking **${openWOCount}** open tickets (${criticalWOCount} critical) and **${availableTechs}** available technicians. You can ask me:\n• "Who is best for fiber optic in Gulshan?"\n• "Show available technicians in Mirpur"\n• "Current SLA and emergency status"\n• "How to troubleshoot 11kV transformer fault"`;
+      }
+    }
+
+    res.json({
+      success: true,
+      response: responseText,
+      method: 'smart_ops_engine',
+    });
   } catch (err) {
     logger.error('Dispatcher query error:', err);
     res.status(500).json({ success: false, error: 'AI query failed' });
@@ -188,8 +298,8 @@ Query: "${query}"`;
 router.post('/copilot', async (req, res) => {
   try {
     const { query, category } = req.body;
-    if (!query || query.trim().length < 5) {
-      return res.status(400).json({ success: false, error: 'Query too short' });
+    if (!query || query.trim().length < 2) {
+      return res.status(400).json({ success: false, error: 'Please enter at least 2 characters for your query.' });
     }
 
     // ── 1. Retrieve candidate knowledge docs ────────────────────────────────
@@ -207,7 +317,7 @@ router.post('/copilot', async (req, res) => {
       try {
         const { GoogleGenerativeAI } = await import('@google/generative-ai');
         const genAI        = new GoogleGenerativeAI(geminiKey);
-        const embedModel   = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+        const embedModel   = genAI.getGenerativeModel({ model: GEMINI_EMBED_MODEL });
         const embedResult  = await embedModel.embedContent(query);
         const queryVector  = embedResult.embedding.values;
 
@@ -230,6 +340,11 @@ router.post('/copilot', async (req, res) => {
       retrievedDocs = keywordSearch(allDocs, query, 5);
     }
 
+    // If query words didn't match specific docs but category filter was selected, fall back to category docs
+    if (retrievedDocs.length === 0 && allDocs.length > 0) {
+      retrievedDocs = allDocs.slice(0, 5);
+    }
+
     // ── 2. Build grounded context ──────────────────────────────────────────
     const contextBlocks = retrievedDocs.map((d, i) =>
       `[${i + 1}] ${d.title} (${d.source ?? d.category}) ${d.pageRef ? `— ${d.pageRef}` : ''}\n${d.content}`
@@ -242,7 +357,7 @@ router.post('/copilot', async (req, res) => {
       try {
         const { GoogleGenerativeAI } = await import('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(geminiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
         const systemPrompt = `You are CrewRescue Copilot — an expert AI assistant for field service technicians and emergency dispatchers in the utility and critical infrastructure sector.
 You provide precise, actionable troubleshooting guidance based on equipment manuals and operational knowledge.
@@ -324,7 +439,7 @@ router.post('/knowledge', async (req, res) => {
       try {
         const { GoogleGenerativeAI } = await import('@google/generative-ai');
         const genAI       = new GoogleGenerativeAI(geminiKey);
-        const embedModel  = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+        const embedModel  = genAI.getGenerativeModel({ model: GEMINI_EMBED_MODEL });
         const embedResult = await embedModel.embedContent(`${title}\n${content}`);
         embedding         = embedResult.embedding.values;
       } catch (e) {
@@ -358,6 +473,173 @@ router.delete('/knowledge/:id', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/ai/chat — Full conversational AI assistant (multi-turn)
+//
+// Body: { message: string, history: [{role, parts:[{text}]}] }
+// Injects live operational context (tickets, techs, emergencies) into every turn
+// ─────────────────────────────────────────────────────────────────────────────
+router.post('/chat', async (req, res) => {
+  try {
+    const { message, history = [] } = req.body;
+    if (!message?.trim()) return res.status(400).json({ success: false, error: 'Message required' });
+
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (!geminiKey || geminiKey === 'your_gemini_api_key_here') {
+      return res.json({
+        success: true,
+        reply: 'AI Assistant requires a valid GEMINI_API_KEY to be configured in the server environment.',
+        method: 'no_key',
+      });
+    }
+
+    const orgId = req.organizationId;
+
+    // Fetch rich live context from DB
+    const [openWOCount, criticalWOCount, highWOCount, activeEmergency, totalTechs, availableTechs, onJobTechs, recentCritical] = await Promise.all([
+      WorkOrder.countDocuments({ organizationId: orgId, status: { $nin: ['RESOLVED', 'VERIFIED', 'CLOSED'] } }),
+      WorkOrder.countDocuments({ organizationId: orgId, severity: 'CRITICAL', status: { $nin: ['RESOLVED', 'VERIFIED', 'CLOSED'] } }),
+      WorkOrder.countDocuments({ organizationId: orgId, severity: 'HIGH',     status: { $nin: ['RESOLVED', 'VERIFIED', 'CLOSED'] } }),
+      Emergency.findOne({ organizationId: orgId, isActive: true }).sort({ createdAt: -1 }).lean(),
+      Technician.countDocuments({ organizationId: orgId, isActive: true }),
+      Technician.countDocuments({ organizationId: orgId, isActive: true, status: 'AVAILABLE' }),
+      Technician.countDocuments({ organizationId: orgId, isActive: true, status: 'ON_JOB' }),
+      WorkOrder.find({ organizationId: orgId, severity: 'CRITICAL', status: { $nin: ['RESOLVED', 'VERIFIED', 'CLOSED'] } })
+        .sort({ createdAt: -1 }).limit(3).select('workOrderNumber title category location.area').lean(),
+    ]);
+
+    const approachingSLA = await WorkOrder.countDocuments({
+      organizationId: orgId,
+      status: { $nin: ['RESOLVED', 'VERIFIED', 'CLOSED'] },
+      'sla.resolutionDeadline': { $gte: new Date(), $lte: new Date(Date.now() + 2 * 60 * 60 * 1000) },
+    });
+
+    // Build system context prompt
+    const systemInstruction = `You are CrewRescue AI — an intelligent operations assistant for utility field service dispatchers.
+You have deep expertise in: emergency dispatch, technician scheduling, SLA management, power grid operations, HVAC, fiber/network infrastructure, and field safety protocols.
+
+LIVE OPERATIONAL CONTEXT (as of this moment):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Ticket Status:
+  • Total Active (unresolved): ${openWOCount} tickets
+  • CRITICAL severity: ${criticalWOCount} tickets
+  • HIGH severity: ${highWOCount} tickets
+  • Approaching SLA breach (<2 hrs): ${approachingSLA} tickets
+
+🚨 Emergency Mode: ${activeEmergency ? `ACTIVE — ${activeEmergency.level}: "${activeEmergency.title}"` : 'NONE — Normal L0 Operations'}
+
+👷 Technician Fleet:
+  • Total active technicians: ${totalTechs}
+  • Currently AVAILABLE: ${availableTechs}
+  • Currently ON_JOB: ${onJobTechs}
+  • Utilization rate: ${totalTechs > 0 ? Math.round((onJobTechs / totalTechs) * 100) : 0}%
+
+🔴 Most Critical Open Tickets:
+${recentCritical.length > 0 ? recentCritical.map((t, i) => `  ${i + 1}. [${t.workOrderNumber}] ${t.title} — ${t.category} in ${t.location?.area || 'Unknown Area'}`).join('\n') : '  None currently'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BEHAVIOR GUIDELINES:
+- Be concise, direct, and actionable. Dispatchers need answers fast.
+- When asked about technicians, provide names/skills if available from queries.
+- Use markdown formatting (bold, bullet points) for readability.
+- For technical questions (equipment, safety), provide step-by-step procedures.
+- Always prioritize CRITICAL and SLA-breaching tickets in recommendations.
+- If you don't know something specific, say so and provide the best available guidance.
+- You CAN answer general operational, scheduling, and technical questions even without DB data.`;
+
+    // Sanitize and format history strictly according to Gemini requirements:
+    // 1. Valid roles are only 'user' and 'model' (map 'assistant' -> 'model')
+    // 2. The first message in history MUST be with role 'user'
+    // 3. Messages must alternate roles (user -> model -> user -> model)
+    const cleanHistory = [];
+    if (Array.isArray(history)) {
+      for (const h of history) {
+        if (!h.text || typeof h.text !== 'string' || !h.text.trim()) continue;
+        const role = (h.role === 'assistant' || h.role === 'model') ? 'model' : 'user';
+        if (cleanHistory.length === 0) {
+          if (role !== 'user') continue; // Skip initial assistant greetings
+        } else {
+          const lastRole = cleanHistory[cleanHistory.length - 1].role;
+          if (lastRole === role) {
+            cleanHistory[cleanHistory.length - 1].parts[0].text += `\n\n${h.text.trim()}`;
+            continue;
+          }
+        }
+        cleanHistory.push({ role, parts: [{ text: h.text.trim() }] });
+      }
+    }
+
+    // Ensure the last message in history is from 'model' so the incoming message ('user') is valid next turn
+    if (cleanHistory.length > 0 && cleanHistory[cleanHistory.length - 1].role === 'user') {
+      cleanHistory.pop();
+    }
+
+    try {
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(geminiKey);
+      const model = genAI.getGenerativeModel({
+        model: GEMINI_MODEL,
+        systemInstruction,
+      });
+
+      // Reconstruct the chat session with sanitized history
+      const chat = model.startChat({
+        history: cleanHistory,
+      });
+
+      const result = await chat.sendMessage(message);
+      const reply  = result.response.text();
+
+      return res.json({
+        success: true,
+        reply,
+        context: {
+          openTickets: openWOCount,
+          criticalTickets: criticalWOCount,
+          availableTechs,
+          totalTechs,
+          emergencyActive: !!activeEmergency,
+        },
+        method: 'gemini_chat',
+      });
+    } catch (geminiErr) {
+      logger.warn('Gemini chat API call failed, falling back to smart telemetry response:', geminiErr.message);
+      
+      const isRateLimit = geminiErr.message?.includes('429') || geminiErr.message?.includes('quota');
+      const isOverload  = geminiErr.message?.includes('503') || geminiErr.message?.includes('high demand');
+      const noteReason = isRateLimit
+        ? 'Cloud AI free-tier quota rate limit reached'
+        : isOverload
+          ? 'Cloud AI model temporary load spike'
+          : 'Cloud AI connection temporarily delayed';
+
+      const fallbackReply = `Operational telemetry summary:\n` +
+        `• **Active Tickets**: ${openWOCount} (${criticalWOCount} CRITICAL, ${highWOCount} HIGH)\n` +
+        `• **Fleet Status**: ${availableTechs} available out of ${totalTechs} technicians (${totalTechs > 0 ? Math.round((onJobTechs / totalTechs) * 100) : 0}% fleet utilization)\n` +
+        `• **Emergency**: ${activeEmergency ? `${activeEmergency.level} - ${activeEmergency.title}` : 'Normal L0 Operations'}\n` +
+        `• **SLA Warning**: ${approachingSLA} tickets approaching SLA resolution window.\n\n` +
+        `💡 *Dispatch Action:* Prioritize the ${criticalWOCount} critical tickets or run **Simulated Annealing** in the Optimization tab.\n\n` +
+        `*(Note: ${noteReason}; displaying real-time telemetry from dispatch database.)*`;
+
+      return res.json({
+        success: true,
+        reply: fallbackReply,
+        context: {
+          openTickets: openWOCount,
+          criticalTickets: criticalWOCount,
+          availableTechs,
+          totalTechs,
+          emergencyActive: !!activeEmergency,
+        },
+        method: 'smart_ops_fallback',
+      });
+    }
+  } catch (err) {
+    logger.error('AI chat error:', err.message);
+    res.status(500).json({ success: false, error: `AI chat failed: ${err.message}` });
   }
 });
 

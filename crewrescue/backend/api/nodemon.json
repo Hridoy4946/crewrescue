@@ -1,8 +1,10 @@
 {
-  "nodemonWatch": ["src"],
+  "watch": ["src"],
   "ext": "js,json",
   "ignore": ["node_modules"],
-  "exec": "node --experimental-vm-modules src/index.js",
+  "execMap": {
+    "js": "node --experimental-vm-modules"
+  },
   "env": {
     "NODE_ENV": "development"
   }
