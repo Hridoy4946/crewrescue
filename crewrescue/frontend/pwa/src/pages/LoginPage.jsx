@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuthStore } from '../store/index.js';
-import { Shield, Loader } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {

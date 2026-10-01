@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   ArrowLeft, MapPin, Clock, Wrench, AlertTriangle,
-  Camera, MessageSquare, Send, CheckCircle, ChevronRight,
-  Wifi, WifiOff, Navigation, Phone,
+  Camera, MessageSquare, Send, CheckCircle,
+  WifiOff, Navigation,
 } from 'lucide-react';
 import { useWorkOrderStore } from '../store/index.js';
 import { getNextTransitions, STATUS_COLORS, STATUS_LABELS, formatSLARemaining, getSeverityBadgeClass } from '../lib/transitions.js';
@@ -144,7 +144,7 @@ export default function WorkOrderDetailPage({ workOrderId, onBack }) {
       );
       // Re-fetch to refresh the UI
       await fetchOne(workOrderId);
-    } catch (err) {
+    } catch (_err) {
       toast.error('Failed to update status');
     } finally {
       setTrans(false);

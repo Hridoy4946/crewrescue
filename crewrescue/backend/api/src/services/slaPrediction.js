@@ -109,7 +109,7 @@ export function predictBreachProbability({
 // ── Batch prediction for dashboard ───────────────────────────────────────────
 export async function predictBatchSLABreaches(WorkOrder, Technician, orgId) {
   try {
-    const [openWOs, technicians] = await Promise.all([
+    const [openWOs, _technicians] = await Promise.all([
       WorkOrder.find({
         organizationId: orgId,
         status: { $nin: ['RESOLVED', 'VERIFIED', 'CLOSED'] },

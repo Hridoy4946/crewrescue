@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { RefreshCw, Wifi, WifiOff, Search, Filter } from 'lucide-react';
+import { RefreshCw, WifiOff, Search } from 'lucide-react';
 import { useWorkOrderStore } from '../store/index.js';
 import { STATUS_COLORS, STATUS_LABELS, formatSLARemaining } from '../lib/transitions.js';
-import { formatDistanceToNow } from 'date-fns';
 
 const SEVERITY_COLOR = {
   CRITICAL: '#EF4444',

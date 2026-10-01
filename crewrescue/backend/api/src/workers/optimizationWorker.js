@@ -26,7 +26,7 @@ const redisConfig = {
 };
 
 // ── Greedy solver (inline for worker independence) ────────────────────────────
-function greedySolve(workOrders, technicians, weights) {
+function greedySolve(workOrders, technicians, _weights) {
   const startMs  = Date.now();
   const techLoad = {};
   const assignments = [];

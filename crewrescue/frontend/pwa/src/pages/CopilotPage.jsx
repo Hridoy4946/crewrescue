@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Bot, Send, Sparkles } from 'lucide-react';
 import api from '../lib/api.js';
-import toast from 'react-hot-toast';
 
 const QUICK_PROMPTS = [
   'How do I isolate an 11kV transformer fault?',

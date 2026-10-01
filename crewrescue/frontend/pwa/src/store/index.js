@@ -15,7 +15,7 @@ import {
 // ── Auth Store ────────────────────────────────────────────────────────────────
 export const useAuthStore = create(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       user:            null,
       token:           null,
       isAuthenticated: false,
@@ -59,7 +59,7 @@ export const useAuthStore = create(
 );
 
 // ── Work Orders Store ─────────────────────────────────────────────────────────
-export const useWorkOrderStore = create((set, get) => ({
+export const useWorkOrderStore = create((set, _get) => ({
   workOrders:  [],
   activeWO:    null,
   isLoading:   false,
@@ -73,7 +73,7 @@ export const useWorkOrderStore = create((set, get) => ({
       const wos = data.incidents ?? [];
       await cacheWorkOrders(wos);
       set({ workOrders: wos, isLoading: false, isOffline: false });
-    } catch (err) {
+    } catch (_err) {
       // Fall back to IndexedDB cache
       const cached = await getCachedWorkOrders();
       set({ workOrders: cached, isLoading: false, isOffline: true });

@@ -19,7 +19,7 @@ import { PINNED_STATUSES, SEVERITY } from '@crewrescue/shared';
  * Build an initial greedy schedule (warm start for SA).
  * Returns a Map: workOrderId (string) → technicianId (string)
  */
-function buildGreedySchedule(workOrders, technicians, weights) {
+function buildGreedySchedule(workOrders, technicians, _weights) {
   const schedule = new Map();
   const techLoad = {};
   technicians.forEach((t) => { techLoad[t._id.toString()] = 0; });

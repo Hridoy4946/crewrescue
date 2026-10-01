@@ -2,7 +2,6 @@ import express from 'express';
 import mongoose from 'mongoose';
 import WorkOrder from '../models/WorkOrder.js';
 import Technician from '../models/Technician.js';
-import Depot from '../models/Depot.js';
 import Emergency from '../models/Emergency.js';
 import { authenticate } from '../middleware/auth.js';
 

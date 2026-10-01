@@ -116,7 +116,7 @@ export default function SettingsPage() {
               onClick={() => setActiveSection(id)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                padding: '10px 16px', background: 'none', border: 'none',
+                padding: '10px 16px', border: 'none',
                 cursor: 'pointer', textAlign: 'left',
                 color: activeSection === id ? 'var(--brand-400)' : 'var(--text-secondary)',
                 background: activeSection === id ? 'rgba(59,130,246,0.08)' : 'transparent',

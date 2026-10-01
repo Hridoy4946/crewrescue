@@ -4,7 +4,7 @@ import Technician from '../models/Technician.js';
 import Depot from '../models/Depot.js';
 import { authenticate } from '../middleware/auth.js';
 import { authorize } from '../middleware/rbac.js';
-import { SEVERITY, INCIDENT_CATEGORIES, SKILL_IDS, DHAKA_BOUNDS } from '@crewrescue/shared';
+import { SEVERITY, SKILL_IDS, DHAKA_BOUNDS } from '@crewrescue/shared';
 
 const router = express.Router();
 router.use(authenticate);

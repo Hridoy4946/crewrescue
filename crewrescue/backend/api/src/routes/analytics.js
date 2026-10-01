@@ -5,7 +5,7 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { predictBatchSLABreaches, predictBreachProbability } from '../services/slaPrediction.js';
-import { sendNotification, NOTIFICATION_TEMPLATES } from '../services/notificationService.js';
+import { sendNotification } from '../services/notificationService.js';
 import WorkOrder from '../models/WorkOrder.js';
 import Technician from '../models/Technician.js';
 import { logger } from '../config/logger.js';

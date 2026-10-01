@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Users, Activity, RefreshCw, AlertTriangle, Bell, Sparkles, ShieldAlert } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Activity, RefreshCw, Bell, Sparkles } from 'lucide-react';
 import api from '../lib/api.js';
 import toast from 'react-hot-toast';
 

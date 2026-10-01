@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  Zap, Play, ChevronRight, Clock, TrendingUp, TrendingDown,
+  Zap, Play, ChevronRight, TrendingUp, TrendingDown,
   CheckCircle, XCircle, AlertTriangle, RefreshCw, Activity,
-  BarChart2, GitMerge, Cpu, Shuffle,
+  BarChart2,
 } from 'lucide-react';
 import api from '../lib/api.js';
 import toast from 'react-hot-toast';

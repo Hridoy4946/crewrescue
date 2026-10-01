@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Bot, Send, Trash2, Zap, AlertTriangle, Users, Ticket, Sparkles, ChevronDown, Copy, Check, StopCircle } from 'lucide-react';
+import { Bot, Send, Trash2, Zap, AlertTriangle, Users, Ticket, Sparkles, ChevronDown, Copy, Check } from 'lucide-react';
 import api from '../lib/api.js';
 import ReactMarkdown from 'react-markdown';
 

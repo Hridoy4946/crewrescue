@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet';
+import { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import api from '../lib/api.js';
 import { useSocket } from '../hooks/useSocket.js';
@@ -54,7 +54,7 @@ function AutoFitBounds({ technicians }) {
         map.fitBounds(coords, { padding: [40, 40], maxZoom: 13 });
       }
     }
-  }, [technicians.length]);
+  }, [technicians, map]);
   return null;
 }
 

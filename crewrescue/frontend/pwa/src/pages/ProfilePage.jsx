@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { useGPSStore, useAuthStore } from '../store/index.js';
-import { MapPin, Navigation, Wifi, WifiOff, Battery, Clock, User } from 'lucide-react';
+import { MapPin, Navigation, Wifi, WifiOff, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import api from '../lib/api.js';
 import toast from 'react-hot-toast';
 
 export default function ProfilePage() {

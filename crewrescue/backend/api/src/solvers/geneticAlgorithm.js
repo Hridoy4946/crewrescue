@@ -80,9 +80,8 @@ function tournamentSelect(population, fitnesses, k = 3) {
  * Uniform crossover: each gene (WO) is inherited from either parent with 50% probability.
  * Enforces feasibility by checking eligibility against the receiving parent's allele.
  */
-function crossover(parent1, parent2, technicians) {
+function crossover(parent1, parent2, _technicians) {
   const child     = new Map();
-  const techMap   = new Map(technicians.map((t) => [t._id.toString(), t]));
   const allKeys   = new Set([...parent1.keys(), ...parent2.keys()]);
 
   for (const woId of allKeys) {
@@ -108,7 +107,7 @@ function mutate(chromosome, workOrders, technicians, mutationRate = 0.05) {
   const mutant  = new Map(chromosome);
   const woMap   = new Map(workOrders.map((w) => [w._id.toString(), w]));
 
-  for (const [woId, techId] of mutant) {
+  for (const [woId] of mutant) {
     if (Math.random() >= mutationRate) continue;
     const wo       = woMap.get(woId);
     if (!wo) continue;
