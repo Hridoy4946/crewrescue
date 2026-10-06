@@ -105,8 +105,7 @@ mongodb:
     enabled: true
     storageClass: "local-path"
     size: "10Gi"
-  nodeSelector:
-    kubernetes.io/hostname: "w2"
+  nodeSelector: {}
   resources:
     limits:
       cpu: 1000m
