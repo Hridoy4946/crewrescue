@@ -8,10 +8,10 @@ global:
 
 # ── API Backend ────────────────────────────────────────────────────────────────
 api:
-  replicaCount: 2
+  replicaCount: 1
   image:
-    repository: ghcr.io/yourorg/crewrescue-api
-    pullPolicy: IfNotPresent
+    repository: crewrescue-api
+    pullPolicy: Never
     tag: "latest"
   service:
     type: ClusterIP
@@ -34,13 +34,15 @@ api:
     NODE_ENV: "production"
     RATE_LIMIT_MAX: "500"
     RATE_LIMIT_WINDOW_MS: "60000"
+  nodeSelector:
+    workload: "frontend-api"
 
 # ── BullMQ Optimization Worker ─────────────────────────────────────────────────
 worker:
-  replicaCount: 2
+  replicaCount: 1
   image:
-    repository: ghcr.io/yourorg/crewrescue-api
-    pullPolicy: IfNotPresent
+    repository: crewrescue-worker
+    pullPolicy: Never
     tag: "latest"
   resources:
     limits:
@@ -53,14 +55,16 @@ worker:
     enabled: true
     minReplicas: 2
     maxReplicas: 8
-    targetCPUUtilizationPercentage: 70
+    targetCPUUtilizationPercentage: 80
+  nodeSelector:
+    workload: "compute-db"
 
 # ── Web Console (React Dispatcher SPA) ─────────────────────────────────────────
 web:
-  replicaCount: 2
+  replicaCount: 1
   image:
-    repository: ghcr.io/yourorg/crewrescue-web
-    pullPolicy: IfNotPresent
+    repository: crewrescue-web
+    pullPolicy: Never
     tag: "latest"
   service:
     type: ClusterIP
@@ -72,13 +76,15 @@ web:
     requests:
       cpu: 100m
       memory: 128Mi
+  nodeSelector:
+    workload: "frontend-api"
 
 # ── PWA Mobile Field Technician App ───────────────────────────────────────────
 pwa:
-  replicaCount: 2
+  replicaCount: 1
   image:
-    repository: ghcr.io/yourorg/crewrescue-pwa
-    pullPolicy: IfNotPresent
+    repository: crewrescue-pwa
+    pullPolicy: Never
     tag: "latest"
   service:
     type: ClusterIP
@@ -90,32 +96,19 @@ pwa:
     requests:
       cpu: 100m
       memory: 128Mi
+  nodeSelector:
+    workload: "frontend-api"
 
-# ── Stateful MongoDB Deployment ───────────────────────────────────────────────
+# ── External / In-Cluster Databases ───────────────────────────────────────────
 mongodb:
-  enabled: true
-  replicaCount: 1
-  database: crewrescue
+  embedded: true
   uri: "mongodb://crewrescue-mongo:27017/crewrescue"
-  image:
-    repository: mongo
-    tag: "7.0"
-    pullPolicy: IfNotPresent
-  persistence:
-    enabled: true
-    storageClass: "local-path"
-    size: "10Gi"
-  nodeSelector: {}
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1024Mi
-    requests:
-      cpu: 250m
-      memory: 512Mi
 
 redis:
+  embedded: true
   url: "redis://crewrescue-redis:6379"
+  host: "crewrescue-redis"
+  port: "6379"
 
 # ── Secrets ───────────────────────────────────────────────────────────────────
 secrets:

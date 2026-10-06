@@ -13,33 +13,7 @@ import { logger } from '../config/logger.js';
 const router = express.Router();
 router.use(authenticate);
 
-// ── GET /api/analytics/summary — high-level KPIs ─────────────────────────────
-router.get('/summary', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const now = new Date();
-    const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
-
-    const [total, open, critical, slaBreached, completedToday, techActive] = await Promise.all([
-      WorkOrder.countDocuments({ organizationId: orgId }),
-      WorkOrder.countDocuments({ organizationId: orgId, status: { $nin: ['RESOLVED','VERIFIED','CLOSED'] } }),
-      WorkOrder.countDocuments({ organizationId: orgId, severity: 'CRITICAL', status: { $nin: ['RESOLVED','VERIFIED','CLOSED'] } }),
-      WorkOrder.countDocuments({ organizationId: orgId, 'sla.resolutionBreached': true, status: { $nin: ['RESOLVED','VERIFIED','CLOSED'] } }),
-      WorkOrder.countDocuments({ organizationId: orgId, status: { $in: ['RESOLVED','CLOSED'] }, actualEnd: { $gte: todayStart } }),
-      Technician.countDocuments({ organizationId: orgId, status: { $in: ['AVAILABLE','BUSY','EN_ROUTE','ON_SITE'] } }),
-    ]);
-
-    res.json({
-      success: true,
-      data: { total, open, critical, slaBreached, completedToday, techActive, generatedAt: now },
-    });
-  } catch (err) {
-    logger.error('Analytics summary error:', err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// ── GET /api/analytics/predictions — batch SLA breach predictions ─────────────
+// ── GET /api/sla/predictions — batch SLA breach predictions ──────────────────
 router.get('/predictions', async (req, res) => {
   try {
     const result = await predictBatchSLABreaches(WorkOrder, Technician, req.organizationId);
@@ -49,9 +23,6 @@ router.get('/predictions', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-
-
 
 // ── POST /api/sla/predict — single incident prediction ────────────────────────
 router.post('/predict', async (req, res) => {

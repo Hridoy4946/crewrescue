@@ -24,40 +24,7 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    # Path-based routing: / -> Web console, /pwa -> Technician PWA, /api -> Backend API
-    - host: {{ .Values.global.domain }}
-      http:
-        paths:
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ include "crewrescue.fullname" . }}-api
-                port:
-                  number: 5000
-          - path: /socket.io
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ include "crewrescue.fullname" . }}-api
-                port:
-                  number: 5000
-          - path: /pwa
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ include "crewrescue.fullname" . }}-pwa
-                port:
-                  number: 80
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ include "crewrescue.fullname" . }}-web
-                port:
-                  number: 80
-
-    # Optional Subdomain routing (if DNS configured)
+    # Web Console (Dispatcher)
     - host: app.{{ .Values.global.domain }}
       http:
         paths:
@@ -68,6 +35,18 @@ spec:
                 name: {{ include "crewrescue.fullname" . }}-web
                 port:
                   number: 80
+    - host: localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "crewrescue.fullname" . }}-web
+                port:
+                  number: 80
+
+    # Field Technician Mobile PWA
     - host: field.{{ .Values.global.domain }}
       http:
         paths:
@@ -78,6 +57,8 @@ spec:
                 name: {{ include "crewrescue.fullname" . }}-pwa
                 port:
                   number: 80
+
+    # REST API & Socket.IO
     - host: api.{{ .Values.global.domain }}
       http:
         paths:

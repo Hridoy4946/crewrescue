@@ -12,8 +12,7 @@ router.use(authenticate);
 // POST /api/emergency/declare
 router.post('/declare', authorize('emergency:declare'), async (req, res) => {
   try {
-    const { level, title, reason, description, type, weightOverrides } = req.body;
-    const emergencyTitle = title ?? reason ?? `Level ${level} Emergency`;
+    const { level, title, description, type, weightOverrides } = req.body;
     const orgId = req.organizationId;
 
     // Count current unassigned + at-risk incidents for snapshot
@@ -26,7 +25,7 @@ router.post('/declare', authorize('emergency:declare'), async (req, res) => {
     const emergency = await Emergency.create({
       organizationId: orgId,
       level,
-      title: emergencyTitle,
+      title,
       description,
       type: type ?? 'CUSTOM',
       weightOverrides,

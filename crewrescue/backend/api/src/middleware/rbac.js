@@ -17,9 +17,9 @@ export function authorize(...requiredPermissions) {
     const allowed = requiredPermissions.every((required) => {
       const [resource, action] = required.split(':');
       return (
-        rolePerms.includes('*') ||
         rolePerms.includes(`${resource}:*`) ||
-        rolePerms.includes(`${resource}:${action}`)
+        rolePerms.includes(`${resource}:${action}`) ||
+        rolePerms.includes('*')
       );
     });
 

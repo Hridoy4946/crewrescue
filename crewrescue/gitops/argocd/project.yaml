@@ -1,0 +1,26 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# CrewRescue AI — ArgoCD AppProject
+# Enforces namespace boundaries, cluster destinations, and RBAC policies
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: crewrescue-project
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: "CrewRescue AI Disaster & Emergency Operations Platform"
+  sourceRepos:
+    - "*"
+  destinations:
+    - namespace: "crewrescue*"
+      server: "https://kubernetes.default.svc"
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+    - group: "networking.k8s.io"
+      kind: IngressClass
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

@@ -1,0 +1,65 @@
+{{- if .Values.mongodb.embedded }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "crewrescue.fullname" . }}-mongo
+  labels:
+    {{- include "crewrescue.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  serviceName: {{ include "crewrescue.fullname" . }}-mongo
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "crewrescue.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
+  template:
+    metadata:
+      labels:
+        {{- include "crewrescue.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: database
+    spec:
+      terminationGracePeriodSeconds: 30
+      nodeSelector:
+        workload: compute-db
+      containers:
+        - name: mongo
+          image: mongo:7
+          ports:
+            - containerPort: 27017
+              name: mongodb
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1024Mi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crewrescue.fullname" . }}-mongo
+  labels:
+    {{- include "crewrescue.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  ports:
+    - port: 27017
+      targetPort: 27017
+      name: mongodb
+  selector:
+    {{- include "crewrescue.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+{{- end }}

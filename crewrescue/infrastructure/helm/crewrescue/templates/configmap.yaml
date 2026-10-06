@@ -11,7 +11,9 @@ data:
   RATE_LIMIT_WINDOW_MS: {{ .Values.api.env.RATE_LIMIT_WINDOW_MS | quote }}
   MONGODB_URI: {{ .Values.mongodb.uri | quote }}
   REDIS_URL: {{ .Values.redis.url | quote }}
-  CORS_ORIGINS: "https://app.{{ .Values.global.domain }},https://field.{{ .Values.global.domain }}"
+  REDIS_HOST: {{ .Values.redis.host | default "crewrescue-redis" | quote }}
+  REDIS_PORT: {{ .Values.redis.port | default "6379" | quote }}
+  CORS_ORIGINS: "https://app.{{ .Values.global.domain }},https://field.{{ .Values.global.domain }},http://localhost:8088,http://localhost,http://127.0.0.1:8088"
 ---
 apiVersion: v1
 kind: Secret

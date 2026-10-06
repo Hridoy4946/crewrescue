@@ -1,0 +1,40 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# CrewRescue AI — ArgoCD GitOps Application Manifest
+# Deploys CrewRescue Helm Chart into namespace: crewrescue
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crewrescue
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: crewrescue
+    app.kubernetes.io/part-of: emergency-operations
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # GitOps source repo and path to Helm chart
+    repoURL: https://github.com/Hridoy4946/crewrescue.git
+    targetRevision: HEAD
+    path: crewrescue/infrastructure/helm/crewrescue
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: crewrescue
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
