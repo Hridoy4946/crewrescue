@@ -238,7 +238,7 @@ async function seed() {
 
   // ── Additional Operational Role Users ─────────────────────────────────────
   console.log('👥 Creating operational role accounts...');
-  await User.insertMany([
+  await Promise.all([
     {
       organizationId: org._id,
       name: 'Kamal Hossain',
@@ -276,7 +276,7 @@ async function seed() {
       role: ROLES.TECHNICIAN,
       technicianId: savedTechs[1]._id,
     },
-  ]);
+  ].map(u => User.create(u)));
   console.log('   ✅ Role accounts created: Emergency Manager, Field Supervisor, Executive, Technicians');
 
   // ── Assets ────────────────────────────────────────────────────────────────
