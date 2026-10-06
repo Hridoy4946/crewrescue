@@ -3,7 +3,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Stage 1: Dependencies & Build ──
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Copy root monorepo manifests
@@ -19,7 +19,7 @@ COPY packages/shared ./packages/shared
 COPY backend/api ./backend/api
 
 # ── Stage 2: Production Runner ──
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
