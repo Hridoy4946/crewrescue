@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const depotSchema = new mongoose.Schema({
-  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true, index: true },
+  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true },
   name:           { type: String, required: true, trim: true },
   code:           { type: String, required: true },
   address: {

@@ -6,7 +6,7 @@
 import mongoose from 'mongoose';
 
 const knowledgeDocSchema = new mongoose.Schema({
-  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', index: true },
+  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
 
   // Document metadata
   title:      { type: String, required: true },

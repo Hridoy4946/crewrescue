@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { ASSET_CATEGORIES, SKILL_IDS } from '@crewrescue/shared';
 
 const assetSchema = new mongoose.Schema({
-  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true, index: true },
+  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true },
   assetId:        { type: String, required: true },
   name:           { type: String, required: true, trim: true },
   category:       { type: String, enum: ASSET_CATEGORIES, required: true },

@@ -236,6 +236,49 @@ async function seed() {
   const savedTechs = await Technician.insertMany(technicians);
   console.log(`   ✅ ${savedTechs.length} technicians created`);
 
+  // ── Additional Operational Role Users ─────────────────────────────────────
+  console.log('👥 Creating operational role accounts...');
+  await User.insertMany([
+    {
+      organizationId: org._id,
+      name: 'Kamal Hossain',
+      email: 'emergency@dhakapower.bd',
+      passwordHash: 'Emergency@2025',
+      role: ROLES.EMERGENCY_MANAGER,
+    },
+    {
+      organizationId: org._id,
+      name: 'Tariqul Islam',
+      email: 'supervisor@dhakapower.bd',
+      passwordHash: 'Supervisor@2025',
+      role: ROLES.FIELD_SUPERVISOR,
+    },
+    {
+      organizationId: org._id,
+      name: 'Nusrat Jahan',
+      email: 'executive@dhakapower.bd',
+      passwordHash: 'Executive@2025',
+      role: ROLES.EXECUTIVE,
+    },
+    {
+      organizationId: org._id,
+      name: savedTechs[0].name,
+      email: 'tech1@dhakapower.bd',
+      passwordHash: 'Tech@2025',
+      role: ROLES.TECHNICIAN,
+      technicianId: savedTechs[0]._id,
+    },
+    {
+      organizationId: org._id,
+      name: savedTechs[1].name,
+      email: 'tech2@dhakapower.bd',
+      passwordHash: 'Tech@2025',
+      role: ROLES.TECHNICIAN,
+      technicianId: savedTechs[1]._id,
+    },
+  ]);
+  console.log('   ✅ Role accounts created: Emergency Manager, Field Supervisor, Executive, Technicians');
+
   // ── Assets ────────────────────────────────────────────────────────────────
   console.log('⚡ Creating 300 assets...');
   const assets = [];

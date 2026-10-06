@@ -59,6 +59,48 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// POST /api/technicians/me/location — called by PWA every 30s
+router.post('/me/location', async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+    if (lat == null || lng == null) return res.status(400).json({ success: false, error: 'lat and lng required' });
+
+    let techId = req.user.technicianId;
+    if (!techId) {
+      const tech = await Technician.findOne({ organizationId: req.organizationId, email: req.user.email });
+      if (tech) techId = tech._id;
+    }
+
+    if (!techId) {
+      return res.json({ success: true, note: 'User not mapped to technician' });
+    }
+
+    const tech = await Technician.findOneAndUpdate(
+      { _id: techId, organizationId: req.organizationId },
+      {
+        currentLocation: { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] },
+        lastLocationUpdate: new Date(),
+      },
+      { new: true }
+    ).select('name status currentLocation lastLocationUpdate');
+
+    if (!tech) return res.status(404).json({ success: false, error: 'Technician not found' });
+
+    // Broadcast via socket
+    req.app.get('io')?.to(`org:${req.organizationId}`).emit('technician:location_updated', {
+      technicianId: tech._id,
+      name: tech.name,
+      status: tech.status,
+      location: { lat: parseFloat(lat), lng: parseFloat(lng) },
+      at: tech.lastLocationUpdate,
+    });
+
+    res.json({ success: true, tech });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // PATCH /api/technicians/:id/location — called by PWA every 30s
 router.patch('/:id/location', async (req, res) => {
   try {

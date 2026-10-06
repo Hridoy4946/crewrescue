@@ -25,14 +25,17 @@ export default function LoginPage() {
     }
   }
 
-  function fillDemo(role) {
-    if (role === 'admin') {
-      setEmail('admin@dhakapower.bd');
-      setPassword('Admin@CrewRescue2025');
-    } else {
-      setEmail('dispatcher@dhakapower.bd');
-      setPassword('Dispatch@2025');
-    }
+  const DEMO_ROLES = [
+    { key: 'admin',      label: 'Admin',        email: 'admin@dhakapower.bd',      pw: 'Admin@CrewRescue2025' },
+    { key: 'dispatcher', label: 'Dispatcher',   email: 'dispatcher@dhakapower.bd', pw: 'Dispatch@2025' },
+    { key: 'emergency',  label: 'Emergency Mgr',email: 'emergency@dhakapower.bd',  pw: 'Emergency@2025' },
+    { key: 'supervisor', label: 'Supervisor',   email: 'supervisor@dhakapower.bd', pw: 'Supervisor@2025' },
+    { key: 'executive',  label: 'Executive',    email: 'executive@dhakapower.bd',  pw: 'Executive@2025' },
+  ];
+
+  function fillDemo(r) {
+    setEmail(r.email);
+    setPassword(r.pw);
   }
 
   return (
@@ -49,13 +52,27 @@ export default function LoginPage() {
         </div>
 
         {/* Quick fill buttons */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-          <button className="btn btn-ghost btn-sm w-full" style={{ flex: 1 }} onClick={() => fillDemo('admin')}>
-            Fill Admin
-          </button>
-          <button className="btn btn-ghost btn-sm w-full" style={{ flex: 1 }} onClick={() => fillDemo('dispatcher')}>
-            Fill Dispatcher
-          </button>
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Quick Demo Logins
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {DEMO_ROLES.map((r) => (
+              <button
+                key={r.key}
+                type="button"
+                className="btn btn-ghost btn-sm"
+                style={{
+                  fontSize: '0.72rem', padding: '4px 8px', borderRadius: 8,
+                  background: email === r.email ? 'var(--brand-glow)' : 'rgba(255,255,255,0.04)',
+                  borderColor: email === r.email ? 'var(--brand-500)' : 'var(--border-subtle)',
+                }}
+                onClick={() => fillDemo(r)}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>

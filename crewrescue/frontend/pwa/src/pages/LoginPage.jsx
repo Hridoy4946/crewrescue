@@ -60,10 +60,40 @@ export default function LoginPage() {
           backdropFilter: 'blur(12px)',
         }}
       >
-        <h2 style={{ fontSize: '1.1rem', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h2 style={{ fontSize: '1.1rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Shield size={16} style={{ color: 'var(--brand-light)' }} />
           Sign In
         </h2>
+
+        {/* Quick fill buttons */}
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>
+            Quick Demo Logins:
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            {[
+              { label: 'Technician 1', email: 'tech1@dhakapower.bd', pw: 'Tech@2025' },
+              { label: 'Technician 2', email: 'tech2@dhakapower.bd', pw: 'Tech@2025' },
+              { label: 'Supervisor',   email: 'supervisor@dhakapower.bd', pw: 'Supervisor@2025' },
+              { label: 'Dispatcher',   email: 'dispatcher@dhakapower.bd', pw: 'Dispatch@2025' },
+            ].map(r => (
+              <button
+                key={r.label}
+                type="button"
+                className="btn btn-ghost"
+                style={{
+                  fontSize: '0.72rem', padding: '6px 8px', borderRadius: 8,
+                  background: email === r.email ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.05)',
+                  borderColor: email === r.email ? 'var(--brand-light)' : 'rgba(255,255,255,0.1)',
+                  color: email === r.email ? '#fff' : 'var(--text-secondary)',
+                }}
+                onClick={() => { setEmail(r.email); setPassword(r.pw); }}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>

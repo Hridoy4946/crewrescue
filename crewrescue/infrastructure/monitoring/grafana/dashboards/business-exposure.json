@@ -1,0 +1,59 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Cumulative SLA Penalties Avoided ($ USD)",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "sum(crewrescue_financial_penalties_saved_total)", "legendFormat": "Savings ($)" }
+      ]
+    },
+    {
+      "title": "Current Financial Exposure at Risk ($ USD)",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 },
+      "targets": [
+        { "expr": "sum(crewrescue_sla_exposure_dollars)", "legendFormat": "Exposure ($)" }
+      ]
+    },
+    {
+      "title": "SLA Compliance Rate (%)",
+      "type": "gauge",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 },
+      "targets": [
+        { "expr": "(1 - (sum(crewrescue_sla_breaches_total) / sum(crewrescue_workorders_total))) * 100", "legendFormat": "SLA %" }
+      ]
+    },
+    {
+      "title": "Travel Distance Saved via Metaheuristic Optimization (km)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "targets": [
+        { "expr": "sum(crewrescue_travel_km_saved_total)", "legendFormat": "Km Saved" }
+      ]
+    },
+    {
+      "title": "Estimated Fuel & Operational Savings ($ USD)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "targets": [
+        { "expr": "sum(crewrescue_travel_km_saved_total) * 0.45", "legendFormat": "Fuel Savings ($)" }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["crewrescue", "executive", "financial"],
+  "time": { "from": "now-7d", "to": "now" },
+  "timezone": "browser",
+  "title": "CrewRescue 04: Business Exposure & ROI Analytics",
+  "uid": "crewrescue-business-exposure"
+}

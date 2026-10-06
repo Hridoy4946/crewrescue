@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { ALGORITHMS } from '@crewrescue/shared';
 
 const optimizationRunSchema = new mongoose.Schema({
-  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true, index: true },
+  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true },
 
   trigger: {
     type: String,

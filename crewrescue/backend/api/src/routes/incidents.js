@@ -1,5 +1,6 @@
 import express from 'express';
 import WorkOrder from '../models/WorkOrder.js';
+import Technician from '../models/Technician.js';
 import { authenticate } from '../middleware/auth.js';
 import { authorize } from '../middleware/rbac.js';
 import { SEVERITY } from '@crewrescue/shared';
@@ -10,11 +11,24 @@ router.use(authenticate);
 // GET /api/incidents
 router.get('/', async (req, res) => {
   try {
-    const { status, severity, assignedTo, unassigned, page = 1, limit = 30, emergency } = req.query;
+    const { status, severity, assignedTo, assignedToMe, unassigned, page = 1, limit = 30, emergency } = req.query;
     const query = { organizationId: req.organizationId };
     if (status) query.status = status;
     if (severity) query.severity = severity;
     if (assignedTo) query.assignedTechnicianId = assignedTo;
+    if (assignedToMe === 'true') {
+      let techId = req.user.technicianId;
+      if (!techId) {
+        const tech = await Technician.findOne({ organizationId: req.organizationId, email: req.user.email });
+        if (tech) techId = tech._id;
+      }
+      if (techId) {
+        query.assignedTechnicianId = techId;
+      } else {
+        // Fallback: if not mapped to a specific technician, query by user id or return none
+        query.assignedTechnicianId = req.user._id;
+      }
+    }
     if (unassigned === 'true') query.assignedTechnicianId = null;
     if (emergency === 'true') query.isEmergency = true;
 
@@ -164,6 +178,40 @@ router.patch('/:id/assign', authorize('incidents:*'), async (req, res) => {
     });
 
     res.json({ success: true, incident });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/incidents/:id/notes
+router.post('/:id/notes', async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text?.trim()) return res.status(400).json({ success: false, error: 'Note text required' });
+
+    const incident = await WorkOrder.findOneAndUpdate(
+      { _id: req.params.id, organizationId: req.organizationId },
+      {
+        $push: {
+          notes: {
+            author: req.user._id,
+            text: text.trim(),
+            at: new Date(),
+          },
+        },
+      },
+      { new: true }
+    ).populate('notes.author', 'name role');
+
+    if (!incident) return res.status(404).json({ success: false, error: 'Incident not found' });
+
+    req.app.get('io')?.to(`org:${req.organizationId}`).emit('incident:note_added', {
+      incidentId: incident._id,
+      author: req.user.name,
+      text: text.trim(),
+    });
+
+    res.json({ success: true, notes: incident.notes });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -1,0 +1,59 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Node CPU Utilization (main, w1, w2)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)", "legendFormat": "{{instance}}" }
+      ]
+    },
+    {
+      "title": "Node Memory Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100", "legendFormat": "{{instance}}" }
+      ]
+    },
+    {
+      "title": "Pod Restarts across Worker Nodes (w1 & w2)",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "sum(kube_pod_container_status_restarts_total{namespace=\"crewrescue\"})", "legendFormat": "Restarts" }
+      ]
+    },
+    {
+      "title": "Worker Pod Replica Count (HPA Active)",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 8 },
+      "targets": [
+        { "expr": "kube_deployment_status_replicas{deployment=~\"crewrescue-worker.*\"}", "legendFormat": "Worker Pods" }
+      ]
+    },
+    {
+      "title": "API Gateway Request Throughput",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 8 },
+      "targets": [
+        { "expr": "sum(rate(http_requests_total{job=\"crewrescue-api\"}[2m]))", "legendFormat": "RPS" }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["crewrescue", "kubernetes", "infrastructure"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timezone": "browser",
+  "title": "CrewRescue 01: Cluster & Pod Health",
+  "uid": "crewrescue-cluster-health"
+}

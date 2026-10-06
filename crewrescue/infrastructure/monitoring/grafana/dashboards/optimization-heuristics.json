@@ -1,0 +1,59 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Solver Runtime by Algorithm (Greedy vs GA vs SA)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(optimization_duration_seconds_bucket[5m])) by (le, algorithm))", "legendFormat": "{{algorithm}} (p95 ms)" }
+      ]
+    },
+    {
+      "title": "Candidate Schedules Evaluated per Second",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "sum by (algorithm) (rate(optimization_candidate_solutions_total[1m]))", "legendFormat": "{{algorithm}} solutions/s" }
+      ]
+    },
+    {
+      "title": "Average GA Generations Completed",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "avg(optimization_generations_total)", "legendFormat": "Generations" }
+      ]
+    },
+    {
+      "title": "BullMQ Active Optimization Queue Depth",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 8 },
+      "targets": [
+        { "expr": "bullmq_queue_active{queue=\"optimization\"}", "legendFormat": "Active Jobs" }
+      ]
+    },
+    {
+      "title": "Solver Success Rate (%)",
+      "type": "gauge",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 8 },
+      "targets": [
+        { "expr": "(sum(rate(optimization_runs_total{status=\"COMPLETED\"}[5m])) / sum(rate(optimization_runs_total[5m]))) * 100", "legendFormat": "Success Rate %" }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["crewrescue", "optimization", "ai"],
+  "time": { "from": "now-30m", "to": "now" },
+  "timezone": "browser",
+  "title": "CrewRescue 02: Heuristic Optimization Performance",
+  "uid": "crewrescue-optimization"
+}

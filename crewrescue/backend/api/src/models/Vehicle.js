@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { VEHICLE_TYPES } from '@crewrescue/shared';
 
 const vehicleSchema = new mongoose.Schema({
-  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true, index: true },
+  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true },
   plateNumber:    { type: String, required: true },
   type:           { type: String, enum: VEHICLE_TYPES, required: true },
   make:           String,

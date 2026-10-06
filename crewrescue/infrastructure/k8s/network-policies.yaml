@@ -1,0 +1,105 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: crewrescue
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# 1. Allow Ingress Controller to route traffic to Frontend and API Gateway
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-services
+  namespace: crewrescue
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: app.kubernetes.io/component, operator: In, values: ["api", "web", "pwa"] }
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 5000
+        - protocol: TCP
+          port: 80
+  policyTypes:
+    - Ingress
+---
+# 2. Strict Database Isolation: ONLY API and Worker can communicate with MongoDB (Port 27017)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-app-to-mongodb
+  namespace: crewrescue
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: mongodb
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - { key: app.kubernetes.io/component, operator: In, values: ["api", "worker"] }
+      ports:
+        - protocol: TCP
+          port: 27017
+  policyTypes:
+    - Ingress
+---
+# 3. Queue Isolation: ONLY API and Worker can communicate with Redis (Port 6379)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-app-to-redis
+  namespace: crewrescue
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: redis
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - { key: app.kubernetes.io/component, operator: In, values: ["api", "worker"] }
+      ports:
+        - protocol: TCP
+          port: 6379
+  policyTypes:
+    - Ingress
+---
+# 4. Allow Core Egress for DNS, External LLM API (Google Gemini), and Internal Services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-core-egress
+  namespace: crewrescue
+spec:
+  podSelector: {}
+  egress:
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow HTTPS outbound for Gemini AI and Notification Webhooks
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443
+    # Allow internal communication within crewrescue namespace
+    - to:
+        - podSelector: {}
+  policyTypes:
+    - Egress

@@ -15,7 +15,7 @@ const skillSchema = new mongoose.Schema({
 }, { _id: false });
 
 const technicianSchema = new mongoose.Schema({
-  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true, index: true },
+  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true },
   employeeId:     { type: String, required: true },
   name:           { type: String, required: true, trim: true },
   email:          { type: String, trim: true, lowercase: true },
@@ -29,7 +29,6 @@ const technicianSchema = new mongoose.Schema({
     type: String,
     enum: ['AVAILABLE', 'BUSY', 'EN_ROUTE', 'ON_SITE', 'OFFLINE', 'UNAVAILABLE', 'EMERGENCY'],
     default: 'AVAILABLE',
-    index: true,
   },
   availability: {
     shiftStart:  { type: String, default: '08:00' },

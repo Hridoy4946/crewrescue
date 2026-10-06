@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const emergencySchema = new mongoose.Schema({
-  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true, index: true },
+  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true },
   level:          { type: Number, required: true, min: 1, max: 4 },
   title:          { type: String, required: true },
   description:    String,

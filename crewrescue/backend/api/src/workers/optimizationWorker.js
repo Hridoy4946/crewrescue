@@ -14,9 +14,10 @@ import { getIO } from '../socket/index.js';
 import OptimizationRun from '../models/OptimizationRun.js';
 import WorkOrder from '../models/WorkOrder.js';
 import Technician from '../models/Technician.js';
-import { ALGORITHMS, PINNED_STATUSES, SEVERITY, DEFAULT_WEIGHTS } from '@crewrescue/shared';
+import { ALGORITHMS, PINNED_STATUSES, DEFAULT_WEIGHTS } from '@crewrescue/shared';
 import { runSimulatedAnnealing } from '../solvers/simulatedAnnealing.js';
 import { runGeneticAlgorithm } from '../solvers/geneticAlgorithm.js';
+import { runGreedySolver as greedySolve } from '../solvers/greedySolver.js';
 
 // Redis connection config
 const redisConfig = {
@@ -24,46 +25,6 @@ const redisConfig = {
   port: parseInt(process.env.REDIS_PORT ?? '6379'),
   password: process.env.REDIS_PASSWORD ?? undefined,
 };
-
-// ── Greedy solver (inline for worker independence) ────────────────────────────
-function greedySolve(workOrders, technicians, _weights) {
-  const startMs  = Date.now();
-  const techLoad = {};
-  const assignments = [];
-  technicians.forEach((t) => { techLoad[t._id.toString()] = 0; });
-
-  const unassigned = workOrders
-    .filter((w) => !PINNED_STATUSES.includes(w.status) && !w.assignedTechnicianId)
-    .sort((a, b) => (SEVERITY[b.severity]?.priority ?? 1) - (SEVERITY[a.severity]?.priority ?? 1));
-
-  for (const wo of unassigned) {
-    const eligible = technicians.filter((t) => {
-      if (t.status === 'UNAVAILABLE' || t.status === 'OFFLINE') return false;
-      const techSkillIds = t.skills.map((s) => s.skillId);
-      return (wo.requiredSkills ?? []).every((s) => techSkillIds.includes(s));
-    });
-    if (eligible.length === 0) continue;
-    const best = eligible.sort(
-      (a, b) => (techLoad[a._id.toString()] ?? 0) - (techLoad[b._id.toString()] ?? 0)
-    )[0];
-    techLoad[best._id.toString()] = (techLoad[best._id.toString()] ?? 0) + (wo.estimatedDurationMin ?? 60);
-    assignments.push({
-      workOrderId:    wo._id,
-      prevTechnician: wo.assignedTechnicianId ?? null,
-      newTechnician:  best._id,
-      scheduledStart: new Date(),
-      reason:         `Greedy: lowest load technician, skill-matched`,
-    });
-  }
-
-  return {
-    assignments,
-    runtimeMs: Date.now() - startMs,
-    assigned:  assignments.length,
-    unassigned: unassigned.length - assignments.length,
-    stats:     { candidateSolutions: assignments.length },
-  };
-}
 
 // ── Job processor ─────────────────────────────────────────────────────────────
 async function processOptimizationJob(job) {

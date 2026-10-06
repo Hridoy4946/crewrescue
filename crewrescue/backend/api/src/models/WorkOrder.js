@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { WORK_ORDER_STATUS, INCIDENT_CATEGORIES, SKILL_IDS, PINNED_STATUSES } from '@crewrescue/shared';
 
 const workOrderSchema = new mongoose.Schema({
-  organizationId:  { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true, index: true },
+  organizationId:  { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true },
   workOrderNumber: { type: String, required: true },
   title:           { type: String, required: true, trim: true },
   description:     String,
@@ -32,7 +32,7 @@ const workOrderSchema = new mongoose.Schema({
   },
 
   // Status & lifecycle
-  status:    { type: String, enum: WORK_ORDER_STATUS, default: 'CREATED', index: true },
+  status:    { type: String, enum: WORK_ORDER_STATUS, default: 'CREATED' },
   isPinned:  { type: Boolean, default: false }, // locked from optimizer
 
   // Skills & parts
