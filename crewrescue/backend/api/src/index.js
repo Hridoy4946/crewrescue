@@ -59,21 +59,15 @@ app.use(cors({
 }));
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
+// Generous limiter for seamless demo and operations presentation
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS ?? '60000'),
-  max: parseInt(process.env.RATE_LIMIT_MAX ?? '200'),
+  windowMs: 60 * 1000,
+  max: 10000, // Very high threshold so presentation never gets blocked
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Too many requests. Please slow down.' },
 });
 app.use('/api/', limiter);
-
-// Stricter limiter on auth endpoints
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === 'production' ? 20 : 100,
-  message: { success: false, error: 'Too many login attempts. Try again in 15 minutes.' },
-});
 
 // ── Body parsing ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
@@ -93,7 +87,7 @@ app.get('/health', (_req, res) => {
 });
 
 // ── API Routes ────────────────────────────────────────────────────────────────
-app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/technicians', technicianRoutes);
 app.use('/api/incidents', incidentRoutes);

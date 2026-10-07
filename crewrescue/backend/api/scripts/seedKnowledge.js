@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
 import { connectDB } from '../src/config/db.js';
 import KnowledgeDoc from '../src/models/KnowledgeDoc.js';
 
-const KNOWLEDGE_DOCS = [
+export const KNOWLEDGE_DOCS = [
   // ── Transformer ────────────────────────────────────────────────────────────
   {
     title:    'ABB Transformer T400 — Fault Isolation Procedure',
@@ -357,7 +357,11 @@ async function main() {
   process.exit(0);
 }
 
-main().catch((err) => {
-  console.error('❌ Knowledge seed failed:', err);
-  process.exit(1);
-});
+import { fileURLToPath } from 'url';
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((err) => {
+    console.error('❌ Knowledge seed failed:', err);
+    process.exit(1);
+  });
+}

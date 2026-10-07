@@ -14,20 +14,19 @@ import {
 import { runSimulatedAnnealing } from '../solvers/simulatedAnnealing.js';
 import { runGeneticAlgorithm }   from '../solvers/geneticAlgorithm.js';
 import { runGreedySolver as greedySolve } from '../solvers/greedySolver.js';
+import { getRedisConfig } from '../config/redis.js';
 
 const router = express.Router();
 router.use(authenticate);
 
 // ── BullMQ Queue connection ────────────────────────────────────────────────────
-const redisConfig = {
-  host:     process.env.REDIS_HOST     ?? 'localhost',
-  port:     parseInt(process.env.REDIS_PORT ?? '6379'),
-  password: process.env.REDIS_PASSWORD ?? undefined,
-};
-
 let optimizationQueue;
 try {
+  const redisConfig = getRedisConfig();
   optimizationQueue = new Queue('optimization', { connection: redisConfig });
+  optimizationQueue.on('error', (err) => {
+    logger.warn('Optimization BullMQ queue connection issue:', err.message);
+  });
   logger.info('Optimization BullMQ queue connected');
 } catch (err) {
   logger.warn('BullMQ queue unavailable (Redis not running?) — SA/GA will run synchronously:', err.message);
@@ -83,28 +82,32 @@ router.post('/run', authorize('optimization:run'), asyncHandler(async (req, res)
   });
 
   if (isAsync) {
-    await optimizationQueue.add('solve', {
-      runId:     run._id.toString(),
-      orgId:     orgId.toString(),
-      algorithm,
-      weights,
-    }, {
-      attempts:      3,
-      backoff:       { type: 'exponential', delay: 2000 },
-      removeOnComplete: 50,
-      removeOnFail:     20,
-    });
+    try {
+      await optimizationQueue.add('solve', {
+        runId:     run._id.toString(),
+        orgId:     orgId.toString(),
+        algorithm,
+        weights,
+      }, {
+        attempts:      3,
+        backoff:       { type: 'exponential', delay: 2000 },
+        removeOnComplete: 50,
+        removeOnFail:     20,
+      });
 
-    await OptimizationRun.findByIdAndUpdate(run._id, { status: 'RUNNING' });
+      await OptimizationRun.findByIdAndUpdate(run._id, { status: 'RUNNING' });
 
-    metrics.optimizationRuns.labels(algorithm, 'queued').inc();
-    return res.status(202).json({
-      success: true,
-      runId:   run._id,
-      status:  'RUNNING',
-      mode:    'async',
-      message: `${algorithm} job enqueued. Listen to optimization:progress and optimization:completed Socket.IO events.`,
-    });
+      metrics.optimizationRuns.labels(algorithm, 'queued').inc();
+      return res.status(202).json({
+        success: true,
+        runId:   run._id,
+        status:  'RUNNING',
+        mode:    'async',
+        message: `${algorithm} job enqueued. Listen to optimization:progress and optimization:completed Socket.IO events.`,
+      });
+    } catch (queueErr) {
+      logger.warn(`Failed to enqueue ${algorithm} job to BullMQ, falling back to sync execution:`, queueErr.message);
+    }
   }
 
   res.status(202).json({ success: true, runId: run._id, status: 'RUNNING', mode: 'sync' });
@@ -249,31 +252,43 @@ router.get('/queue/status', asyncHandler(async (req, res) => {
   if (!optimizationQueue) {
     return res.json({ success: true, queue: { available: false, message: 'BullMQ queue not connected (Redis unavailable)' } });
   }
-  const counts = await Promise.race([
-    Promise.all([
-      optimizationQueue.getWaitingCount(),
-      optimizationQueue.getActiveCount(),
-      optimizationQueue.getCompletedCount(),
-      optimizationQueue.getFailedCount(),
-      optimizationQueue.getDelayedCount(),
-    ]),
-    new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Optimization queue status timed out')), 5000);
-    }),
-  ]);
-  const [waiting, active, completed, failed, delayed] = counts;
+  try {
+    const counts = await Promise.race([
+      Promise.all([
+        optimizationQueue.getWaitingCount(),
+        optimizationQueue.getActiveCount(),
+        optimizationQueue.getCompletedCount(),
+        optimizationQueue.getFailedCount(),
+        optimizationQueue.getDelayedCount(),
+      ]),
+      new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Optimization queue status timed out')), 3000);
+      }),
+    ]);
+    const [waiting, active, completed, failed, delayed] = counts;
 
-  res.json({
-    success: true,
-    queue: {
-      available: true,
-      waiting,
-      active,
-      completed,
-      failed,
-      delayed,
-    },
-  });
+    res.json({
+      success: true,
+      queue: {
+        available: true,
+        waiting,
+        active,
+        completed,
+        failed,
+        delayed,
+        total: (waiting || 0) + (active || 0) + (delayed || 0),
+      },
+    });
+  } catch (err) {
+    logger.warn('Failed to fetch BullMQ queue status:', err.message);
+    res.json({
+      success: true,
+      queue: {
+        available: false,
+        message: 'BullMQ queue not responding: ' + err.message,
+      },
+    });
+  }
 }));
 
 // ── GET /api/optimization/compare ─────────────────────────────────────────────

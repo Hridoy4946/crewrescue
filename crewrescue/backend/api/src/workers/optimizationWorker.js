@@ -18,13 +18,10 @@ import { ALGORITHMS, PINNED_STATUSES, DEFAULT_WEIGHTS } from '@crewrescue/shared
 import { runSimulatedAnnealing } from '../solvers/simulatedAnnealing.js';
 import { runGeneticAlgorithm } from '../solvers/geneticAlgorithm.js';
 import { runGreedySolver as greedySolve } from '../solvers/greedySolver.js';
+import { getRedisConfig } from '../config/redis.js';
 
 // Redis connection config
-const redisConfig = {
-  host: process.env.REDIS_HOST ?? 'localhost',
-  port: parseInt(process.env.REDIS_PORT ?? '6379'),
-  password: process.env.REDIS_PASSWORD ?? undefined,
-};
+const redisConfig = getRedisConfig();
 
 // ── Job processor ─────────────────────────────────────────────────────────────
 async function processOptimizationJob(job) {
