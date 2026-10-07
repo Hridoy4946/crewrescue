@@ -1,0 +1,130 @@
+name: CrewRescue AI — CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: 20.x
+  MONGO_URI: mongodb://localhost:27017/crewrescue_test
+  REDIS_URL: redis://localhost:6379
+  JWT_ACCESS_SECRET: test_access_secret_ci_cd_only
+  JWT_REFRESH_SECRET: test_refresh_secret_ci_cd_only
+  GEMINI_API_KEY: test_key_ci_only
+
+jobs:
+  lint:
+    name: Lint & Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint --workspace=backend/api
+      - run: npm run lint --workspace=frontend/web
+      - run: npm run lint --workspace=frontend/pwa
+
+  test:
+    name: Functional Tests
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7
+        ports: [27017:27017]
+      redis:
+        image: redis:7-alpine
+        ports: [6379:6379]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: cd backend/api && npm run seed
+      - run: cd backend/api && npm run dev &
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5000/health; then
+              echo "API ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API failed to start"
+          exit 1
+      - run: node scripts/funcTest.mjs
+        working-directory: backend/api
+
+  security-scan:
+    name: Security & Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - name: OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: crewrescue
+          path: 'crewrescue/backend/api'
+          format: 'HTML'
+          args: >
+            --enableRetired
+            --enableExperimental
+            --suppression crewrescue/infrastructure/security/dependency-check-suppression.xml
+      - name: Upload Dependency Check report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: backend/api/reports
+      - name: Trivy Container Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'crewrescue-api:latest'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  build:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    needs: [lint, test, security-scan]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build --workspaces
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infrastructure/docker/api.Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infrastructure/docker/web.Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/web:${{ github.sha }}

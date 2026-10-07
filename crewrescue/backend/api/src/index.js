@@ -15,7 +15,7 @@ import { metricsMiddleware, metricsHandler } from './config/metrics.js';
 // Models (pre-register all schemas)
 import './models/KnowledgeDoc.js';
 
-// Routes
+import { AppError } from './middleware/error.js';
 import authRoutes from './routes/auth.js';
 import technicianRoutes from './routes/technicians.js';
 import incidentRoutes from './routes/incidents.js';
@@ -37,7 +37,22 @@ const app = express();
 const httpServer = createServer(app);
 
 // ── Security ──────────────────────────────────────────────────────────────────
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      imgSrc: ["'self'", "data:", "https:", "http:"],
+      connectSrc: ["'self'", "http://localhost:5000", "ws://localhost:5000"],
+      fontSrc: ["'self'", "data:", "https:", "http:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'", "data:", "https:", "http:"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
 app.use(cors({
   origin: process.env.CORS_ORIGINS?.split(',') ?? ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true,
@@ -100,13 +115,15 @@ app.use((_req, res) => {
 });
 
 // ── Global error handler ──────────────────────────────────────────────────────
-// eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   logger.error(err.stack ?? err.message);
-  const status = err.status ?? err.statusCode ?? 500;
+  const status = err instanceof AppError ? err.statusCode : (err.statusCode ?? err.status ?? 500);
+  const message = process.env.NODE_ENV === 'production'
+    ? (err instanceof AppError ? err.message : 'Internal server error')
+    : err.message;
   res.status(status).json({
     success: false,
-    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
+    error: message,
   });
 });
 

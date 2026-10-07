@@ -54,7 +54,7 @@ function Bubble({ msg }) {
 }
 
 export default function CopilotPage() {
-  const [messages, setMessages] = useState([{
+  const [messages, setMessages] = useState(() => [{
     role: 'assistant', content: 'Hi! I\'m your field copilot. Ask me about equipment troubleshooting, safety procedures, or fault codes.', timestamp: Date.now(),
   }]);
   const [input, setInput] = useState('');

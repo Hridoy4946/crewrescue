@@ -73,7 +73,7 @@ export const useWorkOrderStore = create((set, _get) => ({
       const wos = data.incidents ?? [];
       await cacheWorkOrders(wos);
       set({ workOrders: wos, isLoading: false, isOffline: false });
-    } catch (_err) {
+    } catch {
       // Fall back to IndexedDB cache
       const cached = await getCachedWorkOrders();
       set({ workOrders: cached, isLoading: false, isOffline: true });

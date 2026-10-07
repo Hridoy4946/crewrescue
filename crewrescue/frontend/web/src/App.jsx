@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { useAuthStore, useDashboardStore, useEmergencyStore } from './store/index.js';
+import { useAuthStore, useDashboardStore } from './store/index.js';
 import { useSocket } from './hooks/useSocket.js';
 
 import LoginPage        from './pages/LoginPage.jsx';

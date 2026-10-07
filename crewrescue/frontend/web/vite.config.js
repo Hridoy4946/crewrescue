@@ -10,4 +10,8 @@ export default defineConfig({
       '/socket.io': { target: 'http://localhost:5000', ws: true },
     },
   },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+  },
 })

@@ -144,7 +144,7 @@ export default function WorkOrderDetailPage({ workOrderId, onBack }) {
       );
       // Re-fetch to refresh the UI
       await fetchOne(workOrderId);
-    } catch (_err) {
+    } catch {
       toast.error('Failed to update status');
     } finally {
       setTrans(false);

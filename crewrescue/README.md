@@ -122,7 +122,7 @@ Run this once to load initial data:
 
 ```bash
 cd backend/api
-node src/scripts/seed.js
+node scripts/seed.js
 cd ../..
 ```
 

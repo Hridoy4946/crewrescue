@@ -1,138 +1,34 @@
-# Default values for crewrescue.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+replicaCount: 2
 
-global:
-  environment: production
-  domain: crewrescue.app
+image:
+  api: crewrescue-api:latest
+  web: crewrescue-web:latest
+  pullPolicy: Always
 
-# ── API Backend ────────────────────────────────────────────────────────────────
-api:
-  replicaCount: 1
-  image:
-    repository: crewrescue-api
-    pullPolicy: Never
-    tag: "latest"
-  service:
-    type: ClusterIP
+service:
+  api:
     port: 5000
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1024Mi
-    requests:
-      cpu: 250m
-      memory: 512Mi
-  autoscaling:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 75
-    targetMemoryUtilizationPercentage: 80
-  env:
-    PORT: "5000"
-    NODE_ENV: "production"
-    RATE_LIMIT_MAX: "500"
-    RATE_LIMIT_WINDOW_MS: "60000"
-  nodeSelector:
-    workload: "frontend-api"
-
-# ── BullMQ Optimization Worker ─────────────────────────────────────────────────
-worker:
-  replicaCount: 1
-  image:
-    repository: crewrescue-worker
-    pullPolicy: Never
-    tag: "latest"
-  resources:
-    limits:
-      cpu: 2000m
-      memory: 2048Mi
-    requests:
-      cpu: 500m
-      memory: 512Mi
-  autoscaling:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 8
-    targetCPUUtilizationPercentage: 80
-  nodeSelector:
-    workload: "compute-db"
-
-# ── Web Console (React Dispatcher SPA) ─────────────────────────────────────────
-web:
-  replicaCount: 1
-  image:
-    repository: crewrescue-web
-    pullPolicy: Never
-    tag: "latest"
-  service:
-    type: ClusterIP
+  web:
     port: 80
-  resources:
-    limits:
-      cpu: 500m
-      memory: 256Mi
+
+resources:
+  api:
     requests:
-      cpu: 100m
-      memory: 128Mi
-  nodeSelector:
-    workload: "frontend-api"
-
-# ── PWA Mobile Field Technician App ───────────────────────────────────────────
-pwa:
-  replicaCount: 1
-  image:
-    repository: crewrescue-pwa
-    pullPolicy: Never
-    tag: "latest"
-  service:
-    type: ClusterIP
-    port: 80
-  resources:
+      memory: "256Mi"
+      cpu: "200m"
     limits:
-      cpu: 500m
-      memory: 256Mi
+      memory: "512Mi"
+      cpu: "500m"
+  web:
     requests:
-      cpu: 100m
-      memory: 128Mi
-  nodeSelector:
-    workload: "frontend-api"
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
 
-# ── External / In-Cluster Databases ───────────────────────────────────────────
-mongodb:
-  embedded: true
-  uri: "mongodb://crewrescue-mongo:27017/crewrescue"
-
-redis:
-  embedded: true
-  url: "redis://crewrescue-redis:6379"
-  host: "crewrescue-redis"
-  port: "6379"
-
-# ── Secrets ───────────────────────────────────────────────────────────────────
-secrets:
-  jwtAccessSecret: "change_me_super_secret_jwt_access_production_2025"
-  jwtRefreshSecret: "change_me_super_secret_jwt_refresh_production_2025"
-  geminiApiKey: ""
-  emailApiKey: ""
-  twilioAccountSid: ""
-  twilioAuthToken: ""
-  twilioFrom: ""
-
-# ── Ingress ───────────────────────────────────────────────────────────────────
-ingress:
-  enabled: true
-  className: "nginx"
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/proxy-body-size: "15m"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    nginx.ingress.kubernetes.io/websocket-services: "crewrescue-api"
-  tls:
-    - secretName: crewrescue-tls
-      hosts:
-        - app.crewrescue.app
-        - field.crewrescue.app
-        - api.crewrescue.app
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80

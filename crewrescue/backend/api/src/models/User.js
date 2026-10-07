@@ -23,6 +23,9 @@ const userSchema = new mongoose.Schema({
 // Compound unique index: email per org
 userSchema.index({ organizationId: 1, email: 1 }, { unique: true });
 
+// TTL index for refresh token cleanup (7 days)
+userSchema.index({ refreshTokens: 1 }, { expireAfterSeconds: 7 * 24 * 60 * 60 });
+
 // Hash password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('passwordHash')) return next();

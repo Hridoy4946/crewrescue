@@ -51,8 +51,8 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_URL: redis://redis:6379
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-crewrescue_super_secret_access_jwt_key_2025_prod}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-crewrescue_super_secret_refresh_jwt_key_2025_prod}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Set JWT_ACCESS_SECRET in .env}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET in .env}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:5173,http://localhost:5174
     networks:
@@ -83,7 +83,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_URL: redis://redis:6379
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-crewrescue_super_secret_access_jwt_key_2025_prod}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Set JWT_ACCESS_SECRET in .env}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     networks:
       - crewrescue-net

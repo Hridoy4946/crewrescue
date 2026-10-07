@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import api from '../lib/api.js';
 
-export const useAuthStore = create((set, get) => ({
+export const useAuthStore = create((set) => ({
   user: null,
   isLoading: true,
   isAuthenticated: false,
@@ -50,7 +50,7 @@ export const useDashboardStore = create((set) => ({
   },
 }));
 
-export const useEmergencyStore = create((set, get) => ({
+export const useEmergencyStore = create((set) => ({
   active: null,
 
   fetchActive: async () => {
