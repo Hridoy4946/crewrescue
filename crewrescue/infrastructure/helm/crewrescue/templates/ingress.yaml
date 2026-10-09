@@ -24,8 +24,7 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    # Web Console (Dispatcher)
-    - host: app.{{ .Values.global.domain }}
+    - host: {{ .Values.ingress.hosts.web | quote }}
       http:
         paths:
           - path: /
@@ -35,19 +34,7 @@ spec:
                 name: {{ include "crewrescue.fullname" . }}-web
                 port:
                   number: 80
-    - host: localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ include "crewrescue.fullname" . }}-web
-                port:
-                  number: 80
-
-    # Field Technician Mobile PWA
-    - host: field.{{ .Values.global.domain }}
+    - host: {{ .Values.ingress.hosts.pwa | quote }}
       http:
         paths:
           - path: /
@@ -58,8 +45,7 @@ spec:
                 port:
                   number: 80
 
-    # REST API & Socket.IO
-    - host: api.{{ .Values.global.domain }}
+    - host: {{ .Values.ingress.hosts.api | quote }}
       http:
         paths:
           - path: /

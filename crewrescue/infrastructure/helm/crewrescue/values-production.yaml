@@ -1,0 +1,73 @@
+# Production overlay.
+# Set image tags to a published Git commit SHA and provide the external
+# MongoDB/Redis connection values through the deployment environment.
+global:
+  domain: REPLACE_WITH_PRODUCTION_DOMAIN
+  corsOrigins:
+    - https://app.REPLACE_WITH_PRODUCTION_DOMAIN
+    - https://field.REPLACE_WITH_PRODUCTION_DOMAIN
+
+api:
+  image:
+    repository: docker.io/hridoy4946/crewrescue-api
+    tag: REPLACE_WITH_COMMIT_SHA
+    pullPolicy: IfNotPresent
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+worker:
+  image:
+    repository: docker.io/hridoy4946/crewrescue-api
+    tag: REPLACE_WITH_COMMIT_SHA
+    pullPolicy: IfNotPresent
+
+web:
+  image:
+    repository: docker.io/hridoy4946/crewrescue-web
+    tag: REPLACE_WITH_COMMIT_SHA
+    pullPolicy: IfNotPresent
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+
+pwa:
+  image:
+    repository: docker.io/hridoy4946/crewrescue-pwa
+    tag: REPLACE_WITH_COMMIT_SHA
+    pullPolicy: IfNotPresent
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+
+mongodb:
+  embedded: false
+  uri: REPLACE_WITH_MANAGED_MONGODB_URI
+
+redis:
+  embedded: false
+  url: REPLACE_WITH_MANAGED_REDIS_URL
+  host: REPLACE_WITH_MANAGED_REDIS_HOST
+  port: "6379"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    web: app.REPLACE_WITH_PRODUCTION_DOMAIN
+    pwa: field.REPLACE_WITH_PRODUCTION_DOMAIN
+    api: api.REPLACE_WITH_PRODUCTION_DOMAIN
+  tls:
+    - secretName: crewrescue-tls
+      hosts:
+        - app.REPLACE_WITH_PRODUCTION_DOMAIN
+        - field.REPLACE_WITH_PRODUCTION_DOMAIN
+        - api.REPLACE_WITH_PRODUCTION_DOMAIN

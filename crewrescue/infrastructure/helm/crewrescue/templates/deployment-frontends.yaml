@@ -6,7 +6,9 @@ metadata:
     {{- include "crewrescue.labels" . | nindent 4 }}
     app.kubernetes.io/component: web
 spec:
+  {{- if not .Values.web.autoscaling.enabled }}
   replicas: {{ .Values.web.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "crewrescue.selectorLabels" . | nindent 6 }}
@@ -39,6 +41,10 @@ spec:
             periodSeconds: 5
           resources:
             {{- toYaml .Values.web.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
       {{- with .Values.web.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -74,7 +80,9 @@ metadata:
     {{- include "crewrescue.labels" . | nindent 4 }}
     app.kubernetes.io/component: pwa
 spec:
+  {{- if not .Values.pwa.autoscaling.enabled }}
   replicas: {{ .Values.pwa.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "crewrescue.selectorLabels" . | nindent 6 }}
@@ -107,6 +115,10 @@ spec:
             periodSeconds: 5
           resources:
             {{- toYaml .Values.pwa.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
       {{- with .Values.pwa.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

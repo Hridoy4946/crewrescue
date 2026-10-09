@@ -82,3 +82,25 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 # 4. Check ArgoCD sync status
 kubectl get applications -n argocd
 ```
+
+## 5. Production Deployment Gate
+
+The default `values.yaml` is retained for the local/demo cluster. Production
+must use [`values-production.yaml`](../helm/crewrescue/values-production.yaml)
+as an additional Helm values file after replacing every `REPLACE_WITH_*`
+value during deployment.
+
+Before applying the production overlay:
+
+1. Publish API, Web, and PWA images to Docker Hub using the Git commit SHA as
+   the image tag.
+2. Create `crewrescue-secrets` in the target namespace with JWT and provider
+   credentials. Do not commit the Secret or its values.
+3. Use managed MongoDB and Redis endpoints and validate network access.
+4. Install an ingress controller and cert-manager, create the
+   `letsencrypt-prod` ClusterIssuer, and point DNS at the ingress load balancer.
+5. Install metrics-server and verify HPA metrics before enabling autoscaling.
+6. Configure scheduled MongoDB backups and complete a restore test.
+
+The production overlay intentionally contains placeholders so an accidental
+sync cannot deploy demo credentials, localhost origins, or mutable local images.

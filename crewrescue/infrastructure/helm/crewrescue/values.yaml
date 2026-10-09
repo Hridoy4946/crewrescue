@@ -1,5 +1,8 @@
 global:
   domain: crewrescue.local
+  corsOrigins:
+    - http://localhost:3000
+    - http://127.0.0.1:3000
 
 api:
   replicaCount: 2
@@ -67,6 +70,11 @@ web:
     limits:
       memory: "256Mi"
       cpu: "200m"
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 80
   nodeSelector: {}
   affinity: {}
 
@@ -86,6 +94,11 @@ pwa:
     limits:
       memory: "256Mi"
       cpu: "200m"
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 80
   nodeSelector: {}
   affinity: {}
 
@@ -103,6 +116,10 @@ ingress:
   enabled: false
   className: nginx
   annotations: {}
+  hosts:
+    web: app.crewrescue.local
+    pwa: field.crewrescue.local
+    api: api.crewrescue.local
   tls: []
 
 secrets:

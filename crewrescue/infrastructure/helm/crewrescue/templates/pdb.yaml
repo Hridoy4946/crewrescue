@@ -1,0 +1,19 @@
+{{- range $workload := list "api" "web" "pwa" "worker" }}
+{{- $config := index $.Values $workload }}
+{{- if or (gt (int $config.replicaCount) 1) (and $config.autoscaling.enabled (gt (int $config.autoscaling.minReplicas) 1)) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "crewrescue.fullname" $ }}-{{ $workload }}-pdb
+  labels:
+    {{- include "crewrescue.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $workload }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "crewrescue.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: {{ $workload }}
+---
+{{- end }}
+{{- end }}

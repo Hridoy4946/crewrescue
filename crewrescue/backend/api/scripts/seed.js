@@ -20,6 +20,13 @@ import { SKILL_IDS, VEHICLE_TYPES, ASSET_CATEGORIES, INCIDENT_CATEGORIES, SEVERI
 const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const pickN = (arr, n) => [...arr].sort(() => 0.5 - Math.random()).slice(0, n);
+const isProduction = process.env.NODE_ENV === 'production';
+const seedAdminPassword = process.env.SEED_ADMIN_PASSWORD ?? (isProduction ? null : 'Admin@CrewRescue2025');
+const seedDispatcherPassword = process.env.SEED_DISPATCHER_PASSWORD ?? (isProduction ? null : 'Dispatch@2025');
+
+if (!seedAdminPassword || !seedDispatcherPassword) {
+  throw new Error('SEED_ADMIN_PASSWORD and SEED_DISPATCHER_PASSWORD are required when NODE_ENV=production');
+}
 
 function randomDhakaPoint(spreadKm = 15) {
   const kmPerDeg = 111;
@@ -130,7 +137,7 @@ async function seed() {
     organizationId: org._id,
     name: 'Rahman Al-Rashid',
     email: process.env.SEED_ADMIN_EMAIL ?? 'admin@dhakapower.bd',
-    passwordHash: process.env.SEED_ADMIN_PASSWORD ?? 'Admin@CrewRescue2025',
+    passwordHash: seedAdminPassword,
     role: ROLES.ORG_ADMIN,
   });
 
@@ -138,7 +145,7 @@ async function seed() {
     organizationId: org._id,
     name: 'Nadia Chowdhury',
     email: 'dispatcher@dhakapower.bd',
-    passwordHash: 'Dispatch@2025',
+    passwordHash: seedDispatcherPassword,
     role: ROLES.DISPATCHER,
   });
   console.log(`   ✅ Admin: ${adminUser.email}`);
@@ -238,7 +245,7 @@ async function seed() {
 
   // ── Additional Operational Role Users ─────────────────────────────────────
   console.log('👥 Creating operational role accounts...');
-  const roleUsers = [
+  const roleUsers = isProduction ? [] : [
     {
       organizationId: org._id,
       name: 'Kamal Hossain',
@@ -281,7 +288,9 @@ async function seed() {
   for (const u of roleUsers) {
     await User.create(u);
   }
-  console.log('   ✅ Role accounts created: Emergency Manager, Field Supervisor, Executive, Technicians');
+  if (!isProduction) {
+    console.log('   ✅ Role accounts created: Emergency Manager, Field Supervisor, Executive, Technicians');
+  }
 
   // ── Assets ────────────────────────────────────────────────────────────────
   console.log('⚡ Creating 300 assets...');
@@ -394,9 +403,9 @@ async function seed() {
   console.log('═══════════════════════════════════════════════');
   console.log(`Organization : ${org.name}`);
   console.log(`Admin Login  : ${adminUser.email}`);
-  console.log(`Password     : ${process.env.SEED_ADMIN_PASSWORD ?? 'Admin@CrewRescue2025'}`);
+  console.log('Password     : supplied through SEED_ADMIN_PASSWORD');
   console.log(`Dispatcher   : dispatcher@dhakapower.bd`);
-  console.log(`Dispatcher PW: Dispatch@2025`);
+  console.log('Dispatcher PW: supplied through SEED_DISPATCHER_PASSWORD');
   console.log('───────────────────────────────────────────────');
   console.log(`Technicians  : 100`);
   console.log(`Vehicles     : 35`);

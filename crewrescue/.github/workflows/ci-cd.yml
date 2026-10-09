@@ -87,10 +87,12 @@ jobs:
         with:
           name: dependency-check-report
           path: backend/api/reports
+      - name: Build API image for Trivy
+        run: docker build -t crewrescue-api:${{ github.sha }} -f infrastructure/docker/api.Dockerfile .
       - name: Trivy Container Scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'crewrescue-api:latest'
+          image-ref: 'crewrescue-api:${{ github.sha }}'
           format: 'sarif'
           output: 'trivy-results.sarif'
       - name: Upload Trivy scan results
@@ -113,18 +115,23 @@ jobs:
       - run: npm run build --workspaces
       - uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: docker/build-push-action@v5
         with:
           context: .
           file: infrastructure/docker/api.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/crewrescue-api:${{ github.sha }}
       - uses: docker/build-push-action@v5
         with:
           context: .
           file: infrastructure/docker/web.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/web:${{ github.sha }}
+          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/crewrescue-web:${{ github.sha }}
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infrastructure/docker/pwa.Dockerfile
+          push: true
+          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/crewrescue-pwa:${{ github.sha }}

@@ -13,12 +13,12 @@ data:
   REDIS_URL: {{ .Values.redis.url | quote }}
   REDIS_HOST: {{ .Values.redis.host | default "crewrescue-redis" | quote }}
   REDIS_PORT: {{ .Values.redis.port | default "6379" | quote }}
-  CORS_ORIGINS: "https://app.{{ .Values.global.domain }},https://field.{{ .Values.global.domain }},http://localhost:8088,http://localhost:3000,http://localhost,http://127.0.0.1:8088,http://127.0.0.1:3000"
+  CORS_ORIGINS: {{ join "," .Values.global.corsOrigins | quote }}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ include "crewrescue.fullname" . }}-secrets
+  name: {{ .Values.secrets.existingSecret | default (printf "%s-secrets" (include "crewrescue.fullname" .)) }}
   annotations:
     argocd.argoproj.io/sync-options: Prune=false
   labels:
