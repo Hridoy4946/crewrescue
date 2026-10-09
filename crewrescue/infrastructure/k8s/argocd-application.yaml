@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/Hridoy4946/crewrescue.git
     targetRevision: main
-    path: infrastructure/helm/crewrescue
+    path: crewrescue/infrastructure/helm/crewrescue
     helm:
       valueFiles:
         - values.yaml
