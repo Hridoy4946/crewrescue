@@ -24,6 +24,7 @@ metadata:
   labels:
     {{- include "crewrescue.labels" . | nindent 4 }}
 type: Opaque
+immutable: true
 {{ if not .Values.secrets.existingSecret }}
 stringData:
   JWT_ACCESS_SECRET: {{ .Values.secrets.jwtAccessSecret | quote }}
