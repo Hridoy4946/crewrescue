@@ -106,8 +106,9 @@ ingress:
   tls: []
 
 secrets:
-  jwtAccessSecret: change-me-in-argocd
-  jwtRefreshSecret: change-me-in-argocd
+  existingSecret: crewrescue-secrets
+  jwtAccessSecret: ""
+  jwtRefreshSecret: ""
   geminiApiKey: ""
   emailApiKey: ""
   twilioAccountSid: ""
