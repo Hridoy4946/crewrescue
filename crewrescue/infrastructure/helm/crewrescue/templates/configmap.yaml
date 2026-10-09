@@ -14,15 +14,17 @@ data:
   REDIS_HOST: {{ .Values.redis.host | default "crewrescue-redis" | quote }}
   REDIS_PORT: {{ .Values.redis.port | default "6379" | quote }}
   CORS_ORIGINS: "https://app.{{ .Values.global.domain }},https://field.{{ .Values.global.domain }},http://localhost:8088,http://localhost:3000,http://localhost,http://127.0.0.1:8088,http://127.0.0.1:3000"
-{{ if not .Values.secrets.existingSecret }}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: {{ include "crewrescue.fullname" . }}-secrets
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
   labels:
     {{- include "crewrescue.labels" . | nindent 4 }}
 type: Opaque
+{{ if not .Values.secrets.existingSecret }}
 stringData:
   JWT_ACCESS_SECRET: {{ .Values.secrets.jwtAccessSecret | quote }}
   JWT_REFRESH_SECRET: {{ .Values.secrets.jwtRefreshSecret | quote }}
