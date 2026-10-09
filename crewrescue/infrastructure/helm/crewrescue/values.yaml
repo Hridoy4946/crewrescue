@@ -1,37 +1,115 @@
-replicaCount: 2
+global:
+  domain: crewrescue.local
 
-image:
-  api: crewrescue-api:latest
-  web: crewrescue-web:latest
-  pullPolicy: Always
-
-service:
-  api:
+api:
+  replicaCount: 2
+  image:
+    repository: crewrescue-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
     port: 5000
-  web:
-    port: 80
-
-resources:
-  api:
+  env:
+    NODE_ENV: production
+    PORT: "5000"
+    RATE_LIMIT_MAX: "100"
+    RATE_LIMIT_WINDOW_MS: "900000"
+  resources:
     requests:
       memory: "256Mi"
       cpu: "200m"
     limits:
       memory: "512Mi"
       cpu: "500m"
-  web:
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  nodeSelector: {}
+  affinity: {}
+
+worker:
+  replicaCount: 1
+  image:
+    repository: crewrescue-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  nodeSelector: {}
+  affinity: {}
+
+web:
+  replicaCount: 2
+  image:
+    repository: crewrescue-web
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
     requests:
       memory: "128Mi"
       cpu: "100m"
     limits:
       memory: "256Mi"
       cpu: "200m"
+  nodeSelector: {}
+  affinity: {}
 
-autoscaling:
-  enabled: false
-  minReplicas: 2
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
+pwa:
+  replicaCount: 2
+  image:
+    repository: crewrescue-pwa
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  nodeSelector: {}
+  affinity: {}
+
+mongodb:
+  embedded: true
+  uri: mongodb://crewrescue-mongo:27017/crewrescue
 
 redis:
   embedded: true
+  url: redis://crewrescue-redis:6379
+  host: crewrescue-redis
+  port: "6379"
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  tls: []
+
+secrets:
+  jwtAccessSecret: change-me-in-argocd
+  jwtRefreshSecret: change-me-in-argocd
+  geminiApiKey: ""
+  emailApiKey: ""
+  twilioAccountSid: ""
+  twilioAuthToken: ""
+  twilioFrom: ""
