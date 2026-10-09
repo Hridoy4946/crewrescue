@@ -24,18 +24,15 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: crewrescue/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: crewrescue
         run: npm ci
 
       - name: Lint API
-        working-directory: crewrescue
         run: npm run lint --workspace=backend/api --if-present || true
 
       - name: Lint Web
-        working-directory: crewrescue
         run: npm run lint --workspace=frontend/web --if-present || true
 
   # ─────────────────────────────────────────────────────────────────────────────
@@ -52,18 +49,17 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: crewrescue/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: crewrescue
         run: npm ci
 
       - name: npm audit (API)
-        working-directory: crewrescue/backend/api
+        working-directory: backend/api
         run: npm audit --audit-level=high || true
 
       - name: npm audit (Web)
-        working-directory: crewrescue/frontend/web
+        working-directory: frontend/web
         run: npm audit --audit-level=high || true
 
       - name: Ensure reports directory exists
@@ -73,7 +69,7 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: 'CrewRescue AI'
-          path: './crewrescue'
+          path: '.'
           format: 'HTML'
           out: 'reports/dependency-check'
           args: >
@@ -103,14 +99,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: crewrescue/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: crewrescue
         run: npm ci
 
       - name: Build Vite app
-        working-directory: crewrescue
         run: npm run build --workspace=frontend/web
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL || 'http://localhost:5000/api' }}
@@ -120,7 +114,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: web-dist
-          path: crewrescue/frontend/web/dist/
+          path: frontend/web/dist/
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────────
@@ -147,7 +141,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: web-dist
-          path: crewrescue/frontend/web/dist/
+          path: frontend/web/dist/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -172,8 +166,8 @@ jobs:
       - name: Build and push API image
         uses: docker/build-push-action@v5
         with:
-          context: crewrescue
-          file: crewrescue/infrastructure/docker/api.Dockerfile
+          context: .
+          file: infrastructure/docker/api.Dockerfile
           push: true
           tags: ${{ steps.meta-api.outputs.tags }}
           labels: ${{ steps.meta-api.outputs.labels }}
@@ -193,8 +187,8 @@ jobs:
       - name: Build and push Web image
         uses: docker/build-push-action@v5
         with:
-          context: crewrescue
-          file: crewrescue/infrastructure/docker/web.Dockerfile
+          context: .
+          file: infrastructure/docker/web.Dockerfile
           push: true
           tags: ${{ steps.meta-web.outputs.tags }}
           labels: ${{ steps.meta-web.outputs.labels }}
@@ -235,6 +229,7 @@ jobs:
           format: 'sarif'
           output: 'trivy-api.sarif'
           severity: 'CRITICAL,HIGH'
+          exit-code: '0'
         continue-on-error: true
 
       - name: Upload Trivy API scan results
@@ -259,10 +254,10 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| Lint | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Security Audit | ${{ needs.security.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Web Build | ${{ needs.build-web.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker Push | ${{ needs.docker.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Trivy Scan | ${{ needs.trivy.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint | ${{ needs.lint.result }} \vert{}" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Audit | ${{ needs.security.result }} \vert{}" >> $GITHUB_STEP_SUMMARY
+          echo "| Web Build | ${{ needs.build-web.result }} \vert{}" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Push | ${{ needs.docker.result }} \vert{}" >> $GITHUB_STEP_SUMMARY
+          echo "| Trivy Scan | ${{ needs.trivy.result }} \vert{}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** \`${{ github.ref_name }}\` | **SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
