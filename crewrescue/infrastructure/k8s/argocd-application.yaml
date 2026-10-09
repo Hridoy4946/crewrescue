@@ -20,6 +20,13 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: crewrescue
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: crewrescue-secrets
+      namespace: crewrescue
+      jsonPointers:
+        - /data
   syncPolicy:
     automated:
       prune: true
