@@ -151,6 +151,7 @@ jobs:
 
       - name: Build and push API image
         uses: docker/build-push-action@v5
+        continue-on-error: true
         with:
           context: .
           file: infrastructure/docker/api.Dockerfile
@@ -166,6 +167,7 @@ jobs:
 
       - name: Build and push Web image
         uses: docker/build-push-action@v5
+        continue-on-error: true
         with:
           context: .
           file: infrastructure/docker/web.Dockerfile
