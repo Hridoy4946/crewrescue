@@ -41,7 +41,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/component: mongodb
+      app.kubernetes.io/component: database
   ingress:
     - from:
         - podSelector:
@@ -62,7 +62,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/component: redis
+      app.kubernetes.io/component: queue
   ingress:
     - from:
         - podSelector:
