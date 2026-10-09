@@ -32,3 +32,6 @@ autoscaling:
   minReplicas: 2
   maxReplicas: 10
   targetCPUUtilizationPercentage: 80
+
+redis:
+  embedded: true
