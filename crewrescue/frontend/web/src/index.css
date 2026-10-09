@@ -95,7 +95,7 @@ h3 { font-size: 1.2rem; }
 /* ── App Shell ─────────────────────────────────────────────────────────────── */
 .app-shell {
   display: grid;
-  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   height: 100vh;
   overflow: hidden;
 }
@@ -271,11 +271,13 @@ h3 { font-size: 1.2rem; }
 .main-content {
   grid-area: main;
   overflow-y: auto;
+  min-width: 0;
   background: var(--bg-base);
 }
 
 .page-container {
-  padding: 24px;
+  width: 100%;
+  padding: clamp(16px, 2.5vw, 32px);
   max-width: 1600px;
   margin: 0 auto;
 }
@@ -310,6 +312,100 @@ h3 { font-size: 1.2rem; }
 }
 
 .card-body { padding: 20px; }
+
+/* Shared responsive layout helpers. Pages can keep their desktop layouts while
+   these rules prevent controls and cards from overflowing smaller viewports. */
+.page-container > * { min-width: 0; }
+.card-header > * { min-width: 0; }
+.card-header > :first-child { overflow-wrap: anywhere; }
+.btn { max-width: 100%; }
+
+@media (max-width: 1024px) {
+  :root { --sidebar-width: 216px; }
+  .header { padding: 0 16px; }
+  .page-container { padding: 20px; }
+  .stat-grid { grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); }
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: auto;
+    max-height: 148px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-subtle);
+    overflow: hidden;
+    z-index: 20;
+  }
+
+  .sidebar-logo {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+  }
+
+  .sidebar-nav {
+    flex: none;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 4px;
+    padding: 6px 10px 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .sidebar-nav::-webkit-scrollbar { display: none; }
+  .sidebar-nav > div { display: contents; }
+  .nav-section-label { display: none; }
+  .nav-item {
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: 0.76rem;
+    white-space: nowrap;
+  }
+  .nav-item.active::before { display: none; }
+  .nav-badge { margin-left: 2px; }
+  .sidebar-bottom { display: none; }
+
+  .main-content {
+    min-height: calc(100vh - 148px);
+    overflow: visible;
+  }
+
+  .page-container { padding: 16px; }
+  .card-header { flex-wrap: wrap; }
+  .card-body { padding: 16px; }
+  .stat-grid { gap: 12px; }
+  .stat-card { padding: 16px; }
+  .btn { white-space: normal; text-align: center; }
+}
+
+@media (max-width: 480px) {
+  html { font-size: 13px; }
+  .sidebar { max-height: 132px; }
+  .sidebar-logo { padding: 8px 12px; }
+  .logo-icon { width: 28px; height: 28px; font-size: 16px; }
+  .sidebar-nav { padding: 5px 8px 8px; }
+  .nav-item { padding: 7px 8px; }
+  .nav-item-icon { width: 14px; height: 14px; }
+  .main-content { min-height: calc(100vh - 132px); }
+  .page-container { padding: 12px; }
+  .card-header, .card-body { padding: 12px; }
+  .stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { padding: 12px; }
+  .stat-value { font-size: 1.55rem; }
+  .table-wrapper { margin-inline: -1px; }
+}
 
 /* ── Stat Cards ─────────────────────────────────────────────────────────────── */
 .stat-grid {
@@ -755,4 +851,3 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* ── App shell sidebar fix ───────────────────────────────────────────────────── */
 .sidebar { grid-column: 1; grid-row: 1 / span 2; }
-
