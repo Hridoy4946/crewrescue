@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Settings, User, Bell, Shield, Palette, Database,
-  Save, Check, Moon, Sun, Monitor,
+  Save, Check, Moon, Sun, Monitor, UserCheck,
 } from 'lucide-react';
 import { useAuthStore } from '../store/index.js';
 import toast from 'react-hot-toast';
@@ -13,6 +13,7 @@ const SECTIONS = [
   { id: 'appearance',label: 'Appearance',     icon: Palette },
   { id: 'security',  label: 'Security',       icon: Shield },
   { id: 'system',    label: 'System Info',    icon: Database },
+  { id: 'approvals', label: 'User Approvals', icon: UserCheck, adminOnly: true },
 ];
 
 function ToggleSwitch({ checked, onChange, label, description }) {
@@ -68,6 +69,29 @@ export default function SettingsPage() {
   // Password form
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
   const [savingPw, setSavingPw] = useState(false);
+  const [pendingUsers, setPendingUsers] = useState([]);
+  const [loadingPending, setLoadingPending] = useState(false);
+
+  async function loadPendingUsers() {
+    setLoadingPending(true);
+    try {
+      const { data } = await api.get('/auth/pending');
+      setPendingUsers(data.users);
+    } catch (err) { toast.error(err.response?.data?.error ?? 'Unable to load pending users'); }
+    finally { setLoadingPending(false); }
+  }
+
+  async function updateApproval(id, status) {
+    try {
+      await api.patch(`/auth/users/${id}/approval`, { status });
+      setPendingUsers(users => users.filter((pending) => pending._id !== id));
+      toast.success(status === 'APPROVED' ? 'User approved' : 'User rejected');
+    } catch (err) { toast.error(err.response?.data?.error ?? 'Unable to update approval'); }
+  }
+
+  useEffect(() => {
+    if (activeSection === 'approvals' && user?.role === 'ORG_ADMIN') loadPendingUsers();
+  }, [activeSection, user?.role]);
 
   async function handleSaveProfile(e) {
     e.preventDefault();
@@ -110,7 +134,7 @@ export default function SettingsPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 20, alignItems: 'start' }}>
         {/* Side nav */}
         <div className="card" style={{ padding: '8px 0', position: 'sticky', top: 20 }}>
-          {SECTIONS.map(({ id, label, icon: Icon }) => (
+          {SECTIONS.filter(section => !section.adminOnly || user?.role === 'ORG_ADMIN').map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActiveSection(id)}
@@ -204,6 +228,33 @@ export default function SettingsPage() {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'approvals' && user?.role === 'ORG_ADMIN' && (
+            <div className="card fade-in">
+              <div className="card-header">
+                <div className="card-title"><UserCheck size={14} /> Pending User Approvals</div>
+                <button className="btn btn-ghost btn-sm" onClick={loadPendingUsers} disabled={loadingPending}>
+                  {loadingPending ? 'Loading…' : 'Refresh'}
+                </button>
+              </div>
+              <div className="card-body">
+                {!pendingUsers.length
+                  ? <div className="text-sm text-muted">No pending registration requests.</div>
+                  : pendingUsers.map((pending) => (
+                    <div key={pending._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>{pending.name}</div>
+                        <div className="text-xs text-muted">{pending.email} · {pending.role.replace(/_/g, ' ')}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button className="btn btn-primary btn-sm" onClick={() => updateApproval(pending._id, 'APPROVED')}>Approve</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => updateApproval(pending._id, 'REJECTED')}>Reject</button>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
           )}

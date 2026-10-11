@@ -710,6 +710,14 @@ tbody td {
   min-height: 30px;
   padding: 4px 10px;
 }
+.role-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.role-option {
+  display: flex; align-items: center; gap: 7px; min-height: 36px; padding: 7px 9px;
+  border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-elevated);
+  color: var(--text-secondary); cursor: pointer; text-align: left; font-size: 0.72rem;
+}
+.role-option.selected { border-color: var(--role-color); color: #fff; box-shadow: 0 0 0 1px var(--role-color); }
+.role-dot { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: var(--role-color); }
 
 /* ── Map Panel ──────────────────────────────────────────────────────────────── */
 .map-container {

@@ -10,6 +10,11 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: Object.values(ROLES), required: true },
   technicianId: { type: mongoose.Schema.Types.ObjectId, ref: 'Technician', default: null },
   avatar: String,
+  approvalStatus: {
+    type: String,
+    enum: ['PENDING', 'APPROVED', 'REJECTED'],
+    default: 'APPROVED',
+  },
   isActive: { type: Boolean, default: true },
   lastLoginAt: Date,
   loginHistory: [{

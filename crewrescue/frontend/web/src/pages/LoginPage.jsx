@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [orgName, setOrgName] = useState('');
+  const [role, setRole] = useState('TECHNICIAN');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,8 +29,16 @@ export default function LoginPage() {
           name: name.trim(),
           email: email.trim(),
           password,
+          role,
           ...(orgName.trim() ? { orgName: orgName.trim() } : {}),
         });
+        if (data.pendingApproval) {
+          toast.success('Registration submitted. Wait for admin approval before signing in.');
+          setMode('login');
+          setPassword('');
+          setConfirmPassword('');
+          return;
+        }
         localStorage.setItem('accessToken', data.accessToken);
         useAuthStore.setState({ user: data.user, isAuthenticated: true });
       } else {
@@ -68,6 +77,16 @@ export default function LoginPage() {
                 <div className="form-group">
                   <label className="form-label" htmlFor="org-name">Organization <span className="text-muted">(first setup only)</span></label>
                   <input id="org-name" type="text" className="form-input" placeholder="Your organization" value={orgName} onChange={(e) => setOrgName(e.target.value)} autoComplete="organization" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="role">Requested Role</label>
+                  <div className="role-options">
+                    {roleOptions.map((option) => (
+                      <button key={option.value} type="button" className={`role-option${role === option.value ? ' selected' : ''}`} style={{ '--role-color': option.color }} onClick={() => setRole(option.value)}>
+                        <span className="role-dot" />{option.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </>
             )}
@@ -135,3 +154,14 @@ export default function LoginPage() {
     </div>
   );
 }
+
+const roleOptions = [
+  { value: 'TECHNICIAN', label: 'Technician', color: '#22c55e' },
+  { value: 'FIELD_SUPERVISOR', label: 'Field Supervisor', color: '#06b6d4' },
+  { value: 'DISPATCHER', label: 'Dispatcher', color: '#3b82f6' },
+  { value: 'EMERGENCY_MANAGER', label: 'Emergency Manager', color: '#f97316' },
+  { value: 'INVENTORY_MANAGER', label: 'Inventory', color: '#a855f7' },
+  { value: 'FLEET_MANAGER', label: 'Fleet', color: '#eab308' },
+  { value: 'AUDITOR', label: 'Auditor', color: '#94a3b8' },
+  { value: 'EXECUTIVE', label: 'Executive', color: '#ec4899' },
+];

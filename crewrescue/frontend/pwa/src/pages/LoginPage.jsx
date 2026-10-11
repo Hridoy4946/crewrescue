@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail]   = useState('');
   const [name, setName] = useState('');
   const [orgName, setOrgName] = useState('');
+  const [role, setRole] = useState('TECHNICIAN');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading]   = useState(false);
@@ -27,8 +28,16 @@ export default function LoginPage() {
           name: name.trim(),
           email: email.trim(),
           password,
+          role,
           ...(orgName.trim() ? { orgName: orgName.trim() } : {}),
         });
+        if (data.pendingApproval) {
+          toast.success('Registration submitted. Wait for admin approval before signing in.');
+          setMode('login');
+          setPassword('');
+          setConfirmPassword('');
+          return;
+        }
         localStorage.setItem('pwa_token', data.accessToken);
         await useAuthStore.setState({ user: data.user, token: data.accessToken, isAuthenticated: true });
         toast.success(`Welcome, ${data.user.name}!`);
@@ -127,6 +136,16 @@ export default function LoginPage() {
               <label style={labelStyle}>Organization <span style={{ opacity: 0.7 }}>(first setup only)</span></label>
               <input id="pwa-org-name" type="text" className="input" value={orgName} onChange={e => setOrgName(e.target.value)} placeholder="Your organization" autoComplete="organization" />
             </div>
+            <div>
+              <label style={labelStyle}>Requested Role</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {roleOptions.map((option) => (
+                  <button key={option.value} type="button" className="btn btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 7, justifyContent: 'flex-start', padding: '8px 9px', fontSize: '0.7rem', borderColor: role === option.value ? option.color : 'rgba(255,255,255,0.1)', color: role === option.value ? '#fff' : 'var(--text-secondary)', boxShadow: role === option.value ? `0 0 0 1px ${option.color}` : 'none' }} onClick={() => setRole(option.value)}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: option.color, flex: '0 0 auto' }} />{option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </>}
           <div>
             <label style={labelStyle}>
@@ -202,3 +221,14 @@ const labelStyle = {
   marginBottom: 6,
   fontWeight: 600,
 };
+
+const roleOptions = [
+  { value: 'TECHNICIAN', label: 'Technician', color: '#22c55e' },
+  { value: 'FIELD_SUPERVISOR', label: 'Field Supervisor', color: '#06b6d4' },
+  { value: 'DISPATCHER', label: 'Dispatcher', color: '#3b82f6' },
+  { value: 'EMERGENCY_MANAGER', label: 'Emergency Manager', color: '#f97316' },
+  { value: 'INVENTORY_MANAGER', label: 'Inventory', color: '#a855f7' },
+  { value: 'FLEET_MANAGER', label: 'Fleet', color: '#eab308' },
+  { value: 'AUDITOR', label: 'Auditor', color: '#94a3b8' },
+  { value: 'EXECUTIVE', label: 'Executive', color: '#ec4899' },
+];

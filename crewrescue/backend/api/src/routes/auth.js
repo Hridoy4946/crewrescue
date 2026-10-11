@@ -7,6 +7,7 @@ import { authenticate } from '../middleware/auth.js';
 import { AppError } from '../middleware/error.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { logger } from '../config/logger.js';
+import { authorize } from '../middleware/rbac.js';
 
 const router = express.Router();
 
@@ -45,9 +46,16 @@ router.post('/login', asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: email.toLowerCase() })
     .select('+passwordHash +refreshTokens');
 
-  if (!user || !user.isActive) {
+  if (!user) {
     throw new AppError('Invalid email or password', 401);
   }
+  if (user.approvalStatus === 'PENDING') {
+    throw new AppError('Your account is awaiting admin approval. Please wait or contact your organization administrator.', 403);
+  }
+  if (user.approvalStatus === 'REJECTED') {
+    throw new AppError('Your registration was not approved. Please contact your organization administrator.', 403);
+  }
+  if (!user.isActive) throw new AppError('Your account is inactive. Please contact your organization administrator.', 403);
 
   const valid = await user.comparePassword(password);
   if (!valid) {
@@ -123,7 +131,7 @@ router.get('/me', authenticate, asyncHandler(async (req, res) => {
   res.json({ success: true, user: req.user.toSafeObject() });
 }));
 
-// ── POST /api/auth/register (admin only or first-org setup) ───────────────────
+// ── POST /api/auth/register (first-org setup or pending user request) ─────────
 const registerSchema = z.object({
   orgName:  z.string().min(2).optional(),
   name:     z.string().min(2),
@@ -131,6 +139,17 @@ const registerSchema = z.object({
   password: z.string().min(8),
   role:     z.string().optional(),
 });
+
+const selfRegistrationRoles = [
+  'EMERGENCY_MANAGER',
+  'DISPATCHER',
+  'FIELD_SUPERVISOR',
+  'TECHNICIAN',
+  'INVENTORY_MANAGER',
+  'FLEET_MANAGER',
+  'AUDITOR',
+  'EXECUTIVE',
+];
 
 router.post('/register', asyncHandler(async (req, res) => {
   const { orgName, name, email, password, role } = registerSchema.parse(req.body);
@@ -146,7 +165,28 @@ router.post('/register', asyncHandler(async (req, res) => {
       contactEmail: email,
     });
   } else {
-    return res.status(400).json({ success: false, error: 'Registration requires an invite. Contact your admin.' });
+    const existingOrg = await Organization.findOne().sort({ createdAt: 1 });
+    const existing = await User.findOne({ email: email.toLowerCase(), organizationId: existingOrg._id });
+    if (existing) return res.status(409).json({ success: false, error: 'Email already registered' });
+    if (!selfRegistrationRoles.includes(role ?? '')) {
+      return res.status(400).json({ success: false, error: 'Choose an eligible operational role for approval' });
+    }
+
+    await User.create({
+      organizationId: existingOrg._id,
+      name,
+      email,
+      passwordHash: password,
+      role,
+      approvalStatus: 'PENDING',
+      isActive: false,
+    });
+
+    return res.status(202).json({
+      success: true,
+      pendingApproval: true,
+      message: 'Registration received. Your account is pending admin approval. Please wait or contact your organization administrator.',
+    });
   }
 
   const existing = await User.findOne({ email: email.toLowerCase(), organizationId: org._id });
@@ -157,7 +197,9 @@ router.post('/register', asyncHandler(async (req, res) => {
     name,
     email,
     passwordHash: password,
-    role: role ?? 'ORG_ADMIN',
+    role: 'ORG_ADMIN',
+    approvalStatus: 'APPROVED',
+    isActive: true,
   });
 
   const { accessToken, refreshToken } = generateTokens(user._id.toString(), org._id.toString(), user.role);
@@ -173,6 +215,25 @@ router.post('/register', asyncHandler(async (req, res) => {
     user: user.toSafeObject(),
     organization: org,
   });
+}));
+
+router.get('/pending', authenticate, authorize('users:read'), asyncHandler(async (req, res) => {
+  const users = await User.find({
+    organizationId: req.organizationId,
+    approvalStatus: 'PENDING',
+  }).select('-passwordHash -refreshTokens').sort({ createdAt: 1 });
+  res.json({ success: true, users });
+}));
+
+router.patch('/users/:id/approval', authenticate, authorize('users:update'), asyncHandler(async (req, res) => {
+  const status = z.enum(['APPROVED', 'REJECTED']).parse(req.body.status);
+  const user = await User.findOneAndUpdate(
+    { _id: req.params.id, organizationId: req.organizationId, approvalStatus: 'PENDING' },
+    { approvalStatus: status, isActive: status === 'APPROVED' },
+    { new: true },
+  ).select('-passwordHash -refreshTokens');
+  if (!user) throw new AppError('Pending user not found', 404);
+  res.json({ success: true, user });
 }));
 
 export default router;
