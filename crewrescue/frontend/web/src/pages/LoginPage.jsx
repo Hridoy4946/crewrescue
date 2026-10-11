@@ -68,6 +68,28 @@ export default function LoginPage() {
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
+            {mode === 'login' && (
+              <div className="quick-login">
+                <div className="quick-login-heading">Quick access</div>
+                <div className="quick-login-grid">
+                  {quickLoginRoles.map((demo) => (
+                    <button
+                      key={demo.label}
+                      type="button"
+                      className={`quick-login-card${email === demo.email ? ' selected' : ''}`}
+                      style={{ '--quick-login-color': demo.color }}
+                      onClick={() => { setEmail(demo.email); setPassword(demo.password); }}
+                    >
+                      <span className="quick-login-icon">{demo.icon}</span>
+                      <span>
+                        <strong>{demo.label}</strong>
+                        <small>{demo.description}</small>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {mode === 'register' && (
               <>
                 <div className="form-group">
@@ -164,4 +186,11 @@ const roleOptions = [
   { value: 'FLEET_MANAGER', label: 'Fleet', color: '#eab308' },
   { value: 'AUDITOR', label: 'Auditor', color: '#94a3b8' },
   { value: 'EXECUTIVE', label: 'Executive', color: '#ec4899' },
+];
+
+const quickLoginRoles = [
+  { label: 'Administrator', description: 'Full dashboard access', email: 'admin@dhakapower.bd', password: 'Admin@CrewRescue2025', color: '#8b5cf6', icon: '◆' },
+  { label: 'Dispatcher', description: 'Dispatch operations', email: 'dispatcher@dhakapower.bd', password: 'Dispatch@2025', color: '#3b82f6', icon: '✦' },
+  { label: 'Emergency Manager', description: 'Emergency response', email: 'emergency@dhakapower.bd', password: 'Emergency@2025', color: '#f97316', icon: '!' },
+  { label: 'Executive', description: 'Executive overview', email: 'executive@dhakapower.bd', password: 'Executive@2025', color: '#ec4899', icon: '●' },
 ];

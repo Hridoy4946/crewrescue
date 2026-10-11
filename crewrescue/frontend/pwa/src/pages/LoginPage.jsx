@@ -97,30 +97,22 @@ export default function LoginPage() {
           {mode === 'register' ? 'Create account' : 'Sign In'}
         </h2>
 
-        {mode === 'login' && <div style={{ marginBottom: 18 }}>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>
-            Quick Demo Logins:
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-            {[
-              { label: 'Technician 1', email: 'tech1@dhakapower.bd', pw: 'Tech@2025' },
-              { label: 'Technician 2', email: 'tech2@dhakapower.bd', pw: 'Tech@2025' },
-              { label: 'Supervisor',   email: 'supervisor@dhakapower.bd', pw: 'Supervisor@2025' },
-              { label: 'Dispatcher',   email: 'dispatcher@dhakapower.bd', pw: 'Dispatch@2025' },
-            ].map(r => (
+        {mode === 'login' && <div className="quick-login">
+          <div className="quick-login-heading">Field team quick access</div>
+          <div className="quick-login-grid">
+            {quickLoginRoles.map((demo) => (
               <button
-                key={r.label}
+                key={demo.label}
                 type="button"
-                className="btn btn-ghost"
-                style={{
-                  fontSize: '0.72rem', padding: '6px 8px', borderRadius: 8,
-                  background: email === r.email ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.05)',
-                  borderColor: email === r.email ? 'var(--brand-light)' : 'rgba(255,255,255,0.1)',
-                  color: email === r.email ? '#fff' : 'var(--text-secondary)',
-                }}
-                onClick={() => { setEmail(r.email); setPassword(r.pw); }}
+                className={`quick-login-card${email === demo.email ? ' selected' : ''}`}
+                style={{ '--quick-login-color': demo.color }}
+                onClick={() => { setEmail(demo.email); setPassword(demo.password); }}
               >
-                {r.label}
+                <span className="quick-login-icon">{demo.icon}</span>
+                <span>
+                  <strong>{demo.label}</strong>
+                  <small>{demo.description}</small>
+                </span>
               </button>
             ))}
           </div>
@@ -231,4 +223,10 @@ const roleOptions = [
   { value: 'FLEET_MANAGER', label: 'Fleet', color: '#eab308' },
   { value: 'AUDITOR', label: 'Auditor', color: '#94a3b8' },
   { value: 'EXECUTIVE', label: 'Executive', color: '#ec4899' },
+];
+
+const quickLoginRoles = [
+  { label: 'Technician 1', description: 'Field assignments', email: 'tech1@dhakapower.bd', password: 'Tech@2025', color: '#22c55e', icon: '⚡' },
+  { label: 'Technician 2', description: 'Field assignments', email: 'tech2@dhakapower.bd', password: 'Tech@2025', color: '#14b8a6', icon: '◆' },
+  { label: 'Supervisor', description: 'Crew coordination', email: 'supervisor@dhakapower.bd', password: 'Supervisor@2025', color: '#06b6d4', icon: '✦' },
 ];
