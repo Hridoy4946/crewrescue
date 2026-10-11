@@ -127,6 +127,9 @@ export default function App() {
     <BrowserRouter>
       <Toaster
         position="top-right"
+        reverseOrder={false}
+        containerStyle={{ top: 64 }}
+        gutter={8}
         toastOptions={{
           style: {
             background: 'var(--bg-elevated)',
@@ -135,9 +138,9 @@ export default function App() {
             fontSize: '0.82rem',
             maxWidth: '420px',
           },
-          success: { iconTheme: { primary: 'var(--success)', secondary: 'var(--bg-elevated)' } },
-          error:   { iconTheme: { primary: 'var(--critical)', secondary: 'var(--bg-elevated)' } },
-          duration: 4000,
+          duration: 5000,
+          success: { duration: 4000, iconTheme: { primary: 'var(--success)', secondary: 'var(--bg-elevated)' } },
+          error:   { duration: 5000, iconTheme: { primary: 'var(--critical)', secondary: 'var(--bg-elevated)' } },
         }}
       />
       <Routes>

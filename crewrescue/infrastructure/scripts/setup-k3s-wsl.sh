@@ -106,10 +106,10 @@ pkill -f "kubectl port-forward svc/api" 2>/dev/null || true
 pkill -f "kubectl port-forward svc/web" 2>/dev/null || true
 
 # Start new port-forwards in background
-sudo k3s kubectl port-forward svc/api 5000:5000 -n crewrescue &
+sudo k3s kubectl port-forward --address 0.0.0.0 svc/api 5000:5000 -n crewrescue &
 sleep 3
 
-sudo k3s kubectl port-forward svc/web 5173:80 -n crewrescue &
+sudo k3s kubectl port-forward --address 0.0.0.0 svc/web 5173:80 -n crewrescue &
 sleep 3
 
 echo "   ✅ API available at http://localhost:5000"

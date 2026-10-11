@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/index.js';
 
 export default function LoginPage() {
@@ -16,7 +16,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      toast.success('Welcome back');
+      toast.dismiss(); // clear any lingering error toasts
+      toast.success('Welcome back', { duration: 3000 });
       navigate('/');
     } catch (err) {
       toast.error(err.response?.data?.error ?? 'Login failed');
@@ -25,23 +26,10 @@ export default function LoginPage() {
     }
   }
 
-  const DEMO_ROLES = [
-    { key: 'admin',      label: 'Admin',        email: 'admin@dhakapower.bd',      pw: 'Admin@CrewRescue2025' },
-    { key: 'dispatcher', label: 'Dispatcher',   email: 'dispatcher@dhakapower.bd', pw: 'Dispatch@2025' },
-    { key: 'emergency',  label: 'Emergency Mgr',email: 'emergency@dhakapower.bd',  pw: 'Emergency@2025' },
-    { key: 'supervisor', label: 'Supervisor',   email: 'supervisor@dhakapower.bd', pw: 'Supervisor@2025' },
-    { key: 'executive',  label: 'Executive',    email: 'executive@dhakapower.bd',  pw: 'Executive@2025' },
-  ];
-
-  function fillDemo(r) {
-    setEmail(r.email);
-    setPassword(r.pw);
-  }
-
   return (
     <div className="login-page">
       <div className="login-bg" />
-      <Toaster position="top-right" toastOptions={{ style: { background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' } }} />
+
 
       <div className="login-card fade-in">
         {/* Logo */}
@@ -49,30 +37,6 @@ export default function LoginPage() {
           <div className="login-logo-icon">🚨</div>
           <div className="login-title">CrewRescue AI</div>
           <div className="login-sub">Emergency Field Operations Platform</div>
-        </div>
-
-        {/* Quick fill buttons */}
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Quick Demo Logins
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {DEMO_ROLES.map((r) => (
-              <button
-                key={r.key}
-                type="button"
-                className="btn btn-ghost btn-sm"
-                style={{
-                  fontSize: '0.72rem', padding: '4px 8px', borderRadius: 8,
-                  background: email === r.email ? 'var(--brand-glow)' : 'rgba(255,255,255,0.04)',
-                  borderColor: email === r.email ? 'var(--brand-500)' : 'var(--border-subtle)',
-                }}
-                onClick={() => fillDemo(r)}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
