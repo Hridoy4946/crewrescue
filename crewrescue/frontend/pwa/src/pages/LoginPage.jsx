@@ -46,15 +46,17 @@ export default function LoginPage() {
   return (
     <div style={{
       minHeight: '100dvh',
+      boxSizing: 'border-box',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
+      overflowY: 'auto',
       padding: '24px 20px',
       background: 'linear-gradient(160deg, #0A0F1E 0%, #1E1040 100%)',
     }}>
       {/* Logo */}
-      <div style={{ textAlign: 'center', marginBottom: 40 }}>
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
         <div style={{
           width: 72, height: 72, borderRadius: 20, margin: '0 auto 16px',
           background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
@@ -73,6 +75,7 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         style={{
           width: '100%', maxWidth: 360,
+          boxSizing: 'border-box',
           background: 'rgba(30,41,59,0.8)',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: 24,

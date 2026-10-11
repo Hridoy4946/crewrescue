@@ -647,13 +647,15 @@ tbody td {
 
 /* ── Login Page ─────────────────────────────────────────────────────────────── */
 .login-page {
-  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--bg-base);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  padding: 24px 16px;
 }
 
 .login-bg {
@@ -669,6 +671,7 @@ tbody td {
 .login-card {
   width: 100%;
   max-width: 420px;
+  box-sizing: border-box;
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
@@ -696,6 +699,17 @@ tbody td {
 
 .login-form { display: flex; flex-direction: column; gap: 16px; }
 .login-submit { margin-top: 8px; width: 100%; }
+.login-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.login-switch .btn {
+  min-height: 30px;
+  padding: 4px 10px;
+}
 
 /* ── Map Panel ──────────────────────────────────────────────────────────────── */
 .map-container {
