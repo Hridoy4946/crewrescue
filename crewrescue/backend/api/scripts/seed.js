@@ -23,9 +23,27 @@ const pickN = (arr, n) => [...arr].sort(() => 0.5 - Math.random()).slice(0, n);
 const isProduction = process.env.NODE_ENV === 'production';
 const seedAdminPassword = process.env.SEED_ADMIN_PASSWORD ?? (isProduction ? null : 'Admin@CrewRescue2025');
 const seedDispatcherPassword = process.env.SEED_DISPATCHER_PASSWORD ?? (isProduction ? null : 'Dispatch@2025');
+const seedEmergencyPassword = process.env.SEED_EMERGENCY_PASSWORD ?? (isProduction ? null : 'Emergency@2025');
+const seedSupervisorPassword = process.env.SEED_SUPERVISOR_PASSWORD ?? (isProduction ? null : 'Supervisor@2025');
+const seedExecutivePassword = process.env.SEED_EXECUTIVE_PASSWORD ?? (isProduction ? null : 'Executive@2025');
+const seedTechnicianPassword = process.env.SEED_TECHNICIAN_PASSWORD ?? (isProduction ? null : 'Tech@2025');
 
-if (!seedAdminPassword || !seedDispatcherPassword) {
-  throw new Error('SEED_ADMIN_PASSWORD and SEED_DISPATCHER_PASSWORD are required when NODE_ENV=production');
+const requiredProductionPasswords = [
+  ['SEED_ADMIN_PASSWORD', seedAdminPassword],
+  ['SEED_DISPATCHER_PASSWORD', seedDispatcherPassword],
+  ['SEED_EMERGENCY_PASSWORD', seedEmergencyPassword],
+  ['SEED_SUPERVISOR_PASSWORD', seedSupervisorPassword],
+  ['SEED_EXECUTIVE_PASSWORD', seedExecutivePassword],
+  ['SEED_TECHNICIAN_PASSWORD', seedTechnicianPassword],
+];
+
+if (isProduction) {
+  const missingPasswords = requiredProductionPasswords
+    .filter(([, password]) => !password)
+    .map(([name]) => name);
+  if (missingPasswords.length > 0) {
+    throw new Error(`${missingPasswords.join(', ')} are required when NODE_ENV=production`);
+  }
 }
 
 function randomDhakaPoint(spreadKm = 15) {
@@ -245,33 +263,33 @@ async function seed() {
 
   // ── Additional Operational Role Users ─────────────────────────────────────
   console.log('👥 Creating operational role accounts...');
-  const roleUsers = isProduction ? [] : [
+  const roleUsers = [
     {
       organizationId: org._id,
       name: 'Kamal Hossain',
       email: 'emergency@dhakapower.bd',
-      passwordHash: 'Emergency@2025',
+      passwordHash: seedEmergencyPassword,
       role: ROLES.EMERGENCY_MANAGER,
     },
     {
       organizationId: org._id,
       name: 'Tariqul Islam',
       email: 'supervisor@dhakapower.bd',
-      passwordHash: 'Supervisor@2025',
+      passwordHash: seedSupervisorPassword,
       role: ROLES.FIELD_SUPERVISOR,
     },
     {
       organizationId: org._id,
       name: 'Nusrat Jahan',
       email: 'executive@dhakapower.bd',
-      passwordHash: 'Executive@2025',
+      passwordHash: seedExecutivePassword,
       role: ROLES.EXECUTIVE,
     },
     {
       organizationId: org._id,
       name: savedTechs[0].name,
       email: 'tech1@dhakapower.bd',
-      passwordHash: 'Tech@2025',
+      passwordHash: seedTechnicianPassword,
       role: ROLES.TECHNICIAN,
       technicianId: savedTechs[0]._id,
     },
@@ -279,7 +297,7 @@ async function seed() {
       organizationId: org._id,
       name: savedTechs[1].name,
       email: 'tech2@dhakapower.bd',
-      passwordHash: 'Tech@2025',
+      passwordHash: seedTechnicianPassword,
       role: ROLES.TECHNICIAN,
       technicianId: savedTechs[1]._id,
     },
@@ -288,9 +306,7 @@ async function seed() {
   for (const u of roleUsers) {
     await User.create(u);
   }
-  if (!isProduction) {
-    console.log('   ✅ Role accounts created: Emergency Manager, Field Supervisor, Executive, Technicians');
-  }
+  console.log('   ✅ Role accounts created: Emergency Manager, Field Supervisor, Executive, Technicians');
 
   // ── Assets ────────────────────────────────────────────────────────────────
   console.log('⚡ Creating 300 assets...');

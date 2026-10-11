@@ -26,6 +26,41 @@ Render service:
 6. Deploy the blueprint from the repository root. Confirm the API responds at
    `https://<render-api-host>/health` before deploying the frontend.
 
+## Seeding demo accounts
+
+The production seed creates these demo accounts:
+
+| Role | Email |
+|---|---|
+| Admin | `admin@dhakapower.bd` |
+| Dispatcher | `dispatcher@dhakapower.bd` |
+| Emergency manager | `emergency@dhakapower.bd` |
+| Field supervisor | `supervisor@dhakapower.bd` |
+| Executive | `executive@dhakapower.bd` |
+| Technician | `tech1@dhakapower.bd`, `tech2@dhakapower.bd` |
+
+The seed is destructive: it clears the existing organization data before
+recreating the demo dataset. Only run it against a new or explicitly reset
+database. From the repository root, set these values in a private PowerShell
+session, then run the command:
+
+```powershell
+$env:NODE_ENV = "production"
+$env:MONGO_URI = "mongodb+srv://<username>:<new-password>@<cluster>/<database>"
+$env:SEED_ADMIN_PASSWORD = "<admin-password>"
+$env:SEED_DISPATCHER_PASSWORD = "<dispatcher-password>"
+$env:SEED_EMERGENCY_PASSWORD = "<emergency-manager-password>"
+$env:SEED_SUPERVISOR_PASSWORD = "<field-supervisor-password>"
+$env:SEED_EXECUTIVE_PASSWORD = "<executive-password>"
+$env:SEED_TECHNICIAN_PASSWORD = "<technician-password>"
+
+npm run seed --workspace=backend/api
+```
+
+Use the same technician password for `tech1` and `tech2`, or change the
+seeder if separate technician passwords are required. Never commit these
+values or paste the MongoDB URI into source control.
+
 The API uses Render's assigned `PORT` automatically. Do not hard-code a
 production port in the blueprint.
 
