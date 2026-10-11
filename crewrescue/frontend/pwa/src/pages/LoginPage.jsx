@@ -1,23 +1,43 @@
 import { useState } from 'react';
 import { useAuthStore } from '../store/index.js';
+import api from '../lib/api.js';
 import { Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
+  const [mode, setMode] = useState('login');
   const [email, setEmail]   = useState('');
+  const [name, setName] = useState('');
+  const [orgName, setOrgName] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading]   = useState(false);
   const { login } = useAuthStore();
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!email || !password) return;
+    if (mode === 'register' && password !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
     setLoading(true);
     try {
-      const user = await login(email.trim(), password);
-      toast.success(`Welcome, ${user.name}!`);
+      if (mode === 'register') {
+        const { data } = await api.post('/auth/register', {
+          name: name.trim(),
+          email: email.trim(),
+          password,
+          ...(orgName.trim() ? { orgName: orgName.trim() } : {}),
+        });
+        localStorage.setItem('pwa_token', data.accessToken);
+        await useAuthStore.setState({ user: data.user, token: data.accessToken, isAuthenticated: true });
+        toast.success(`Welcome, ${data.user.name}!`);
+      } else {
+        const user = await login(email.trim(), password);
+        toast.success(`Welcome, ${user.name}!`);
+      }
     } catch (err) {
-      toast.error(err.response?.data?.error ?? 'Login failed');
+      toast.error(err.response?.data?.error ?? (mode === 'register' ? 'Registration failed' : 'Login failed'));
     } finally {
       setLoading(false);
     }
@@ -62,11 +82,10 @@ export default function LoginPage() {
       >
         <h2 style={{ fontSize: '1.1rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Shield size={16} style={{ color: 'var(--brand-light)' }} />
-          Sign In
+          {mode === 'register' ? 'Create account' : 'Sign In'}
         </h2>
 
-        {/* Quick fill buttons */}
-        <div style={{ marginBottom: 18 }}>
+        {mode === 'login' && <div style={{ marginBottom: 18 }}>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>
             Quick Demo Logins:
           </div>
@@ -93,11 +112,21 @@ export default function LoginPage() {
               </button>
             ))}
           </div>
-        </div>
+        </div>}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {mode === 'register' && <>
+            <div>
+              <label style={labelStyle}>Full Name</label>
+              <input id="pwa-name" type="text" className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Your full name" autoComplete="name" minLength={2} required />
+            </div>
+            <div>
+              <label style={labelStyle}>Organization <span style={{ opacity: 0.7 }}>(first setup only)</span></label>
+              <input id="pwa-org-name" type="text" className="input" value={orgName} onChange={e => setOrgName(e.target.value)} placeholder="Your organization" autoComplete="organization" />
+            </div>
+          </>}
           <div>
-            <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: 6, fontWeight: 600 }}>
+            <label style={labelStyle}>
               Email Address
             </label>
             <input
@@ -113,7 +142,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: 6, fontWeight: 600 }}>
+            <label style={labelStyle}>
               Password
             </label>
             <input
@@ -127,6 +156,10 @@ export default function LoginPage() {
               autoComplete="current-password"
             />
           </div>
+          {mode === 'register' && <div>
+            <label style={labelStyle}>Confirm Password</label>
+            <input id="pwa-confirm-password" type="password" className="input" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repeat your password" autoComplete="new-password" minLength={8} required />
+          </div>}
 
           <button
             id="pwa-login-btn"
@@ -137,14 +170,19 @@ export default function LoginPage() {
           >
             {loading
               ? <><div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Signing in…</>
-              : 'Sign In'
+              : mode === 'register' ? 'Create Account' : 'Sign In'
             }
           </button>
         </div>
 
-        <p style={{ marginTop: 16, fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-          Demo: dispatcher@dhakapower.bd / Dispatch@2025
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 16 }}>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+            {mode === 'register' ? 'Already have an account?' : 'New to CrewRescue?'}
+          </span>
+          <button type="button" className="btn btn-ghost" style={{ fontSize: '0.72rem', padding: '4px 8px' }} onClick={() => setMode(mode === 'register' ? 'login' : 'register')}>
+            {mode === 'register' ? 'Sign in' : 'Register as a user'}
+          </button>
+        </div>
       </form>
 
       <p style={{ marginTop: 24, fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center' }}>
@@ -153,3 +191,11 @@ export default function LoginPage() {
     </div>
   );
 }
+
+const labelStyle = {
+  fontSize: '0.75rem',
+  color: 'var(--text-muted)',
+  display: 'block',
+  marginBottom: 6,
+  fontWeight: 600,
+};
