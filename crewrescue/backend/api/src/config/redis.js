@@ -6,7 +6,7 @@ import { logger } from './logger.js';
  */
 export function getRedisConfig() {
   // If REDIS_URL is provided, prioritize it
-  if (process.env.REDIS_URL && process.env.REDIS_URL.startsWith('redis://')) {
+  if (process.env.REDIS_URL && /^(rediss?):\/\//.test(process.env.REDIS_URL)) {
     try {
       const url = new URL(process.env.REDIS_URL);
       return {
@@ -15,6 +15,7 @@ export function getRedisConfig() {
         password: url.password || process.env.REDIS_PASSWORD || undefined,
         username: url.username || undefined,
         maxRetriesPerRequest: null,
+        ...(url.protocol === 'rediss:' ? { tls: {} } : {}),
       };
     } catch (e) {
       logger.warn('Failed to parse REDIS_URL, falling back to host/port:', e.message);
