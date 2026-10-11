@@ -3,6 +3,7 @@ services:
     name: crewrescue-api
     runtime: node
     plan: free
+    rootDir: crewrescue
     buildCommand: npm ci
     startCommand: npm run start --workspace=backend/api
     healthCheckPath: /health
@@ -30,6 +31,7 @@ services:
     name: crewrescue-worker
     runtime: node
     plan: free
+    rootDir: crewrescue
     buildCommand: npm ci
     startCommand: npm run worker --workspace=backend/api
     envVars:
