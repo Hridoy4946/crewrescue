@@ -61,6 +61,10 @@ export default function LoginPage() {
 
 
       <div className="login-card fade-in">
+        <div className="login-purpose">
+          <img src="/utility-response.svg" alt="" aria-hidden="true" />
+          <div><strong>Coordinate. Dispatch. Restore.</strong><span>One command network for every utility response.</span></div>
+        </div>
         {/* Logo */}
         <div className="login-logo">
           <div className="login-logo-icon"><Siren size={28} /></div>

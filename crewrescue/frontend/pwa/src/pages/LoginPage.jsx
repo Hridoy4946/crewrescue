@@ -93,6 +93,11 @@ export default function LoginPage() {
           backdropFilter: 'blur(12px)',
         }}
       >
+        <div className="pwa-purpose">
+          <img src="/utility-response.svg" alt="" aria-hidden="true" />
+          <strong>Field response, connected.</strong>
+          <span>Receive assignments, navigate incidents, and restore service.</span>
+        </div>
         <h2 style={{ fontSize: '1.1rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           <ShieldCheck size={16} style={{ color: 'var(--info)' }} />
           {mode === 'register' ? 'Create account' : 'Sign In'}

@@ -30,6 +30,10 @@ export default function LandingPage() {
           </div>
           <div className="command-visual-footer"><span><i className="node-green" /> 18 units online</span><span><i className="node-amber" /> 04 priority zones</span><span>SYNC 02:34:05</span></div>
         </section>
+        <div className="landing-purpose">
+          <img src="/utility-response.svg" alt="Real-time utility response network connecting an outage signal to a field crew" />
+          <div><span>ONE NETWORK. EVERY RESPONSE.</span><strong>From first outage signal to verified restoration.</strong><small>CrewRescue keeps control-room decisions and field execution connected when every minute matters.</small></div>
+        </div>
         <div className="landing-portals">
           <Link className="landing-portal admin" to="/login"><span className="portal-icon"><MonitorCog size={20} /></span><span><strong>Operations Command Center</strong><small>Monitor grid status, dispatch crews, and coordinate response.</small></span><ArrowUpRight size={18} /></Link>
           <a className="landing-portal field" href="https://crewrescue.vercel.app/"><span className="portal-icon"><HardHat size={20} /></span><span><strong>Field Technician Workspace</strong><small>Receive assignments, navigate incidents, and work offline.</small></span><ArrowUpRight size={18} /></a>
