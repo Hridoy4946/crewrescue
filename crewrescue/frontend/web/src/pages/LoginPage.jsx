@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/index.js';
 import api from '../lib/api.js';
+import { Siren } from 'lucide-react';
 
 export default function LoginPage() {
   const [mode, setMode] = useState('login');
@@ -62,9 +63,10 @@ export default function LoginPage() {
       <div className="login-card fade-in">
         {/* Logo */}
         <div className="login-logo">
-          <div className="login-logo-icon">🚨</div>
+          <div className="login-logo-icon"><Siren size={28} /></div>
             <div className="login-title">CrewRescue AI</div>
-          <div className="login-sub">Emergency Field Operations Platform</div>
+          <div className="login-sub">Dhaka Power · Emergency Operations</div>
+          <div className="login-status"><span /> Secure command network online</div>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>

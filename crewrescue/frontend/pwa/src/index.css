@@ -12,9 +12,9 @@
   --bg-elevated:  #1E293B;
   --bg-card:      #1E2A3B;
 
-  --brand:        #6366F1;
-  --brand-light:  #818CF8;
-  --brand-glow:   rgba(99, 102, 241, 0.25);
+  --brand:        #0EA5E9;
+  --brand-light:  #7DD3FC;
+  --brand-glow:   rgba(14, 165, 233, 0.25);
 
   --success:      #22C55E;
   --warning:      #F59E0B;
@@ -113,6 +113,8 @@ p  { font-size: 0.875rem; line-height: 1.6; }
 .quick-login-card small { color: var(--text-muted); font-size: 0.6rem; margin-top: 2px; }
 #pwa-login-btn { background: #fbbf24; border-color: #fbbf24; color: #020617; font-weight: 800; }
 #pwa-login-btn:hover { background: #fcd34d; border-color: #fcd34d; color: #020617; }
+.login-status { align-items: center; color: #a7f3d0; display: inline-flex; font-size: .68rem; gap: 6px; margin-top: 9px; }
+.login-status span { background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px rgba(34,197,94,.8); display: inline-block; height: 7px; width: 7px; }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -157,7 +159,7 @@ p  { font-size: 0.875rem; line-height: 1.6; }
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--brand), #8B5CF6);
+  background: linear-gradient(135deg, var(--brand), #2563EB);
   display: flex;
   align-items: center;
   justify-content: center;

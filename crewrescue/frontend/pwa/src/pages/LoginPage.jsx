@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuthStore } from '../store/index.js';
 import api from '../lib/api.js';
-import { Shield } from 'lucide-react';
+import { ShieldCheck, Siren } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -62,21 +62,22 @@ export default function LoginPage() {
       justifyContent: 'center',
       overflowY: 'auto',
       padding: '24px 20px',
-      background: 'linear-gradient(160deg, #0A0F1E 0%, #1E1040 100%)',
+      background: 'var(--bg-deep)',
     }}>
       {/* Logo */}
       <div style={{ textAlign: 'center', marginBottom: 20 }}>
         <div style={{
           width: 72, height: 72, borderRadius: 20, margin: '0 auto 16px',
-          background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+          background: 'linear-gradient(135deg, #0ea5e9, #2563eb)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '2rem',
           boxShadow: '0 0 40px rgba(99,102,241,0.4)',
         }}>
-          🚨
+          <Siren size={34} />
         </div>
         <h1 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: 6 }}>CrewRescue</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Field Technician App</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Dhaka Power · Field Operations</p>
+        <div className="login-status"><span /> Secure field network online</div>
       </div>
 
       {/* Form */}
@@ -93,7 +94,7 @@ export default function LoginPage() {
         }}
       >
         <h2 style={{ fontSize: '1.1rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Shield size={16} style={{ color: 'var(--brand-light)' }} />
+          <ShieldCheck size={16} style={{ color: 'var(--info)' }} />
           {mode === 'register' ? 'Create account' : 'Sign In'}
         </h2>
 

@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Map, AlertTriangle, Wrench, Users, Truck,
-  Warehouse, BarChart3, Zap, Settings, LogOut, Radio, Bot,
+  Warehouse, BarChart3, Zap, Settings, LogOut, Radio, Bot, Siren,
 } from 'lucide-react';
 import { useAuthStore, useEmergencyStore } from '../store/index.js';
 
@@ -43,7 +43,7 @@ export default function Sidebar({ stats }) {
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-mark">
-          <div className="logo-icon">🚨</div>
+          <div className="logo-icon"><Siren size={18} /></div>
           <div className="logo-text">
             <div className="logo-title">CrewRescue</div>
             <div className="logo-sub">Emergency Ops</div>

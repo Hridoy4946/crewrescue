@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import {
-  ClipboardList, Bot, User as UserIcon,
+  ClipboardList, Bot, User as UserIcon, Siren,
 } from 'lucide-react';
 
 import { useAuthStore, useGPSStore, syncOutbox } from './store/index.js';
@@ -123,7 +123,7 @@ export default function App() {
       {/* Top bar */}
       <header className="topbar">
         <a href="#" className="topbar-logo" onClick={e => { e.preventDefault(); setSelectedWOId(null); setTab('orders'); }}>
-          <div className="topbar-logo-icon">🚨</div>
+          <div className="topbar-logo-icon"><Siren size={18} /></div>
           <span>CrewRescue</span>
         </a>
         <span style={{ marginLeft: 'auto', fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Field App</span>
