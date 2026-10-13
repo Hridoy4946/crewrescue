@@ -23,7 +23,7 @@
 
   --text-primary:   #F1F5F9;
   --text-secondary: #CBD5E1;
-  --text-muted:     #94A3B8;
+  --text-muted:     #64748B;
 
   --border:       rgba(255,255,255,0.08);
   --border-focus: rgba(99,102,241,0.5);
@@ -170,55 +170,6 @@ p  { font-size: 0.875rem; line-height: 1.6; }
   padding-bottom: calc(80px + env(safe-area-inset-bottom));
 }
 
-.field-profile-card {
-  align-items: center; background: #172554; border: 1px solid #334155; border-radius: 16px;
-  display: flex; gap: 11px; margin-bottom: 14px; padding: 13px 14px;
-}
-.field-profile-avatar {
-  align-items: center; background: #1e40af; border: 2px solid #60a5fa; border-radius: 50%;
-  color: #fff; display: flex; flex: 0 0 auto; height: 42px; justify-content: center; width: 42px;
-}
-.field-profile-copy { display: flex; flex: 1; flex-direction: column; min-width: 0; }
-.field-profile-copy span { color: #cbd5e1; font-size: .68rem; font-weight: 700; text-transform: uppercase; }
-.field-profile-copy strong { color: #fff; font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.active-unit-badge {
-  align-items: center; background: #14532d; border: 1px solid #22c55e; border-radius: 999px;
-  color: #dcfce7; display: flex; font-size: .62rem; font-weight: 800; gap: 5px; padding: 6px 8px; white-space: nowrap;
-}
-.active-unit-badge span { background: #4ade80; border-radius: 50%; box-shadow: 0 0 8px #4ade80; height: 7px; width: 7px; }
-.urgent-dispatch {
-  background: #1f2937; border: 2px solid #ef4444; border-radius: 16px; box-shadow: 0 8px 24px rgba(239,68,68,.2);
-  margin-bottom: 14px; overflow: hidden; position: relative;
-}
-.hazard-stripe { background: repeating-linear-gradient(135deg, #09090b 0, #09090b 12px, #dc2626 12px, #dc2626 24px); height: 9px; }
-.urgent-dispatch-body { padding: 15px; }
-.urgent-kicker { align-items: center; color: #fca5a5; display: flex; font-size: .64rem; font-weight: 900; gap: 6px; letter-spacing: .12em; margin-bottom: 8px; }
-.urgent-heading-row { align-items: flex-start; display: flex; gap: 10px; justify-content: space-between; }
-.urgent-heading-row h1 { color: #fff; font-size: 1.18rem; line-height: 1.25; }
-.urgent-alert-icon { color: #ef4444; flex: 0 0 auto; }
-.urgent-location { align-items: center; color: #e2e8f0; display: flex; font-size: .75rem; gap: 5px; margin-top: 7px; }
-.urgent-location svg { color: #f97316; }
-.urgent-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; }
-.urgent-tags span { border-radius: 5px; font-size: .61rem; font-weight: 900; letter-spacing: .05em; padding: 5px 7px; }
-.hazard-tag { background: #7f1d1d; border: 1px solid #ef4444; color: #fecaca; }
-.priority-tag { background: #9a3412; border: 1px solid #f97316; color: #ffedd5; }
-.urgent-status { background: #334155; border: 1px solid #64748b; color: #f8fafc; }
-.urgent-sla { color: #fbbf24; font-size: .7rem; font-weight: 800; margin-top: 11px; }
-.urgent-view-button { background: transparent; border: 0; color: #bfdbfe; font-size: .72rem; font-weight: 800; margin-top: 13px; padding: 0; }
-.urgent-view-button span { font-size: 1rem; margin-left: 4px; }
-.field-actions { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-.field-action {
-  align-items: center; border: 2px solid; border-radius: 14px; box-shadow: 0 4px 0 rgba(0,0,0,.35);
-  display: grid; grid-template-columns: 34px 1fr auto; min-height: 68px; padding: 10px 16px; text-align: left;
-  transition: transform .1s, filter .1s;
-}
-.field-action:active:not(:disabled) { box-shadow: 0 1px 0 rgba(0,0,0,.35); transform: translateY(3px); }
-.field-action:disabled { cursor: not-allowed; filter: grayscale(1); opacity: .38; }
-.field-action span { font-size: .95rem; font-weight: 950; letter-spacing: .04em; }
-.field-action small { font-size: .65rem; font-weight: 700; opacity: .8; text-align: right; }
-.action-route { background: #fbbf24; border-color: #f59e0b; color: #111827; }
-.action-site { background: #22c55e; border-color: #16a34a; color: #052e16; }
-.action-complete { background: #3b82f6; border-color: #2563eb; color: #fff; }
 
 /* ── Bottom nav ────────────────────────────────────────────────────────────── */
 .bottom-nav {
