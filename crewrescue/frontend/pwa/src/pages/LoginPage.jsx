@@ -65,12 +65,11 @@ export default function LoginPage() {
       padding: '20px 16px',
       background: "#080f22 url('/field-response.jpg') center / cover no-repeat fixed",
     }}>
-      {/* Dark Ambient Overlay */}
+      {/* Dark Ambient Overlay matching welcome page transparency */}
       <div style={{
         position: 'absolute',
         inset: 0,
-        background: 'radial-gradient(ellipse at 50% 50%, rgba(8,15,34,0.74) 0%, rgba(8,15,34,0.94) 100%), linear-gradient(180deg, rgba(8,15,34,0.84) 0%, rgba(15,23,42,0.96) 100%)',
-        backdropFilter: 'blur(3px)',
+        background: 'radial-gradient(ellipse at 50% 50%, rgba(8,15,34,0.30) 0%, rgba(8,15,34,0.72) 100%), linear-gradient(180deg, rgba(8,15,34,0.50) 0%, rgba(15,23,42,0.78) 100%)',
         pointerEvents: 'none',
       }} />
 
