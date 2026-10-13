@@ -26,7 +26,9 @@ api.interceptors.response.use(
   err => {
     if (err.response?.status === 401) {
       localStorage.removeItem('pwa_token');
-      window.location.hash = '#/login';
+      if (window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname || '/');
+      }
     }
     return Promise.reject(err);
   }

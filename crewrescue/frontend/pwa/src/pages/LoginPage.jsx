@@ -60,43 +60,52 @@ export default function LoginPage() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
+      position: 'relative',
       overflowY: 'auto',
-      padding: '24px 20px',
-      background: 'var(--bg-deep)',
+      padding: '20px 16px',
+      background: "#080f22 url('/field-response.jpg') center / cover no-repeat fixed",
     }}>
-      {/* Logo */}
-      <div style={{ textAlign: 'center', marginBottom: 20 }}>
-        <div style={{
-          width: 72, height: 72, borderRadius: 20, margin: '0 auto 16px',
-          background: 'linear-gradient(135deg, #0ea5e9, #2563eb)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '2rem',
-          boxShadow: '0 0 40px rgba(99,102,241,0.4)',
-        }}>
-          <Siren size={34} />
-        </div>
-        <h1 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: 6 }}>CrewRescue</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Dhaka Power · Field Operations</p>
-        <div className="login-status"><span /> Secure field network online</div>
-      </div>
+      {/* Dark Ambient Overlay */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'radial-gradient(ellipse at 50% 50%, rgba(8,15,34,0.74) 0%, rgba(8,15,34,0.94) 100%), linear-gradient(180deg, rgba(8,15,34,0.84) 0%, rgba(15,23,42,0.96) 100%)',
+        backdropFilter: 'blur(3px)',
+        pointerEvents: 'none',
+      }} />
 
-      {/* Form */}
+      {/* Form Card */}
       <form
         onSubmit={handleSubmit}
         style={{
-          width: '100%', maxWidth: 360,
+          width: '100%',
+          maxWidth: 400,
           boxSizing: 'border-box',
-          background: 'rgba(30,41,59,0.8)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 24,
-          padding: '28px 24px',
-          backdropFilter: 'blur(12px)',
+          background: 'rgba(15, 23, 42, 0.92)',
+          border: '1px solid rgba(34, 197, 94, 0.32)',
+          borderRadius: 20,
+          padding: '24px 22px',
+          backdropFilter: 'blur(16px)',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.08)',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
-        <h2 style={{ fontSize: '1.1rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <ShieldCheck size={16} style={{ color: 'var(--info)' }} />
-          {mode === 'register' ? 'Create account' : 'Sign In'}
-        </h2>
+        {/* Compact Logo inside Card */}
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 14, margin: '0 auto 10px',
+            background: 'linear-gradient(135deg, #10b981, #0284c7)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff',
+            boxShadow: '0 0 24px rgba(16, 185, 129, 0.35)',
+          }}>
+            <Siren size={24} />
+          </div>
+          <h1 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: 2, letterSpacing: '-0.01em' }}>CrewRescue Field</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.78rem' }}>Dhaka Power · Emergency Operations</p>
+          <div className="login-status"><span /> Secure field network online</div>
+        </div>
 
         {mode === 'login' && <div className="quick-login">
           <div className="quick-login-heading">Field team quick access</div>

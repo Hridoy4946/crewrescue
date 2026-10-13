@@ -78,6 +78,9 @@ export default function App() {
   const [selectedWOId, setSelectedWOId] = useState(null); // work order detail mode
 
   useEffect(() => {
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname || '/');
+    }
     checkAuth();
   }, []);
 
