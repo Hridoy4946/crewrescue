@@ -780,7 +780,7 @@ tbody td {
 .quick-login-card small { color: var(--text-muted); font-size: 0.62rem; margin-top: 2px; }
 #login-submit { background: #fbbf24; border-color: #fbbf24; color: #020617; font-weight: 800; }
 #login-submit:hover { background: #fcd34d; border-color: #fcd34d; color: #020617; }
-.landing-page { background: #080f22; min-height: 100dvh; overflow: hidden; position: relative; }
+.landing-page { background: #080f22 url('/control-room.jpg') center / cover no-repeat; min-height: 100dvh; overflow: hidden; position: relative; }
 .landing-grid, .landing-grid::after { inset: 0; position: absolute; }
 .landing-grid { background-image: linear-gradient(rgba(56,189,248,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,.08) 1px, transparent 1px); background-size: 56px 56px; mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent); opacity: .6; transform: perspective(600px) rotateX(58deg) scale(1.8) translateY(28%); transform-origin: center bottom; }
 .landing-grid::after { background: radial-gradient(circle at 70% 35%, rgba(14,165,233,.2), transparent 25%), radial-gradient(circle at 20% 85%, rgba(34,197,94,.12), transparent 24%); content: ''; }
@@ -797,14 +797,6 @@ tbody td {
 .landing-content h1 { color: #fff; font-size: clamp(2.5rem, 6.4vw, 5.2rem); letter-spacing: -.055em; line-height: 1.01; margin: 16px 0; max-width: 850px; }
 .landing-content h1 em { color: #38bdf8; font-style: normal; }
 .landing-content > p { color: #cbd5e1; font-size: 1.05rem; line-height: 1.7; max-width: 620px; }
-.landing-hero-image, .landing-field-image { border: 1px solid rgba(56,189,248,.35); border-radius: 16px; box-shadow: 0 20px 55px rgba(0,0,0,.28); margin: 24px 0 20px; overflow: hidden; position: relative; }
-.landing-hero-image { height: clamp(190px, 26vw, 270px); max-width: 760px; }
-.landing-hero-image::after, .landing-field-image::after { background: linear-gradient(180deg, transparent 35%, rgba(3,10,24,.88)); content: ''; inset: 0; pointer-events: none; position: absolute; }
-.landing-hero-image img, .landing-field-image img { display: block; height: 100%; object-fit: cover; width: 100%; }
-.landing-hero-image img { object-position: center 55%; }
-.landing-hero-image figcaption, .landing-field-image figcaption { align-items: center; bottom: 0; color: #dbeafe; display: flex; font-family: 'JetBrains Mono', monospace; font-size: .58rem; gap: 8px; justify-content: space-between; left: 0; letter-spacing: .08em; padding: 13px 15px; position: absolute; right: 0; z-index: 1; }
-.landing-hero-image figcaption b, .landing-field-image figcaption b { color: #67e8f9; font-size: .55rem; font-weight: 500; }
-.image-live-dot { background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; height: 7px; width: 7px; }
 .landing-metrics { display: flex; flex-wrap: wrap; gap: 10px; margin: 30px 0; }
 .landing-metric { align-items: flex-start; border: 1px solid; border-radius: 12px; display: flex; gap: 10px; min-width: 168px; padding: 12px 14px; }
 .landing-metric span { display: flex; flex-direction: column; }
@@ -841,10 +833,9 @@ tbody td {
 .landing-portal.admin:hover { background: rgba(14,116,144,.35); }
 .landing-portal.field { background: rgba(20,83,45,.7); border-color: #22c55e; color: #bbf7d0; }
 .landing-portal.field:hover { background: rgba(22,101,52,.8); }
-.landing-field-image { height: 150px; max-width: 760px; margin-top: 18px; }.landing-field-image img { object-position: center 54%; }.landing-field-image figcaption { color: #bbf7d0; }
 .landing-footer { color: #64748b; display: flex; flex-wrap: wrap; font-family: 'JetBrains Mono', monospace; font-size: .58rem; gap: 20px; letter-spacing: .05em; margin-top: 34px; }
 .landing-footer span { align-items: center; display: inline-flex; gap: 6px; }
-@media (max-width: 600px) { .landing-topline { align-items: flex-start; flex-direction: column; gap: 12px; } .landing-system-status { order: -1; } .landing-eyebrow { margin-top: 72px; } .landing-portals { grid-template-columns: 1fr; } .landing-footer { gap: 10px; } .command-visual-footer { align-items: flex-start; flex-direction: column; gap: 5px; }.command-visual-footer span:last-child { margin-left: 0; }.landing-hero-image { height: 190px; }.landing-hero-image figcaption, .landing-field-image figcaption { align-items: flex-start; flex-direction: column; gap: 4px; }.landing-field-image { height: 130px; } }
+@media (max-width: 600px) { .landing-topline { align-items: flex-start; flex-direction: column; gap: 12px; } .landing-system-status { order: -1; } .landing-eyebrow { margin-top: 72px; } .landing-portals { grid-template-columns: 1fr; } .landing-footer { gap: 10px; } .command-visual-footer { align-items: flex-start; flex-direction: column; gap: 5px; }.command-visual-footer span:last-child { margin-left: 0; } }
 .login-switch {
   display: flex;
   align-items: center;
