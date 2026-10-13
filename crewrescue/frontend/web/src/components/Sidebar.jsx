@@ -7,9 +7,9 @@ import { useAuthStore, useEmergencyStore } from '../store/index.js';
 
 const NAV = [
   { label: 'Operations', items: [
-    { to: '/',            icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/map',         icon: Map,             label: 'Live Map' },
-    { to: '/incidents',   icon: AlertTriangle,   label: 'Incidents',   badgeKey: 'critical' },
+    { to: '/',            icon: LayoutDashboard, label: 'Command Center' },
+    { to: '/map',         icon: Map,             label: 'Dispatch Control' },
+    { to: '/incidents',   icon: AlertTriangle,   label: 'Outage Queue',   badgeKey: 'critical' },
     { to: '/optimize',    icon: Zap,             label: 'Optimization' },
     { to: '/emergency',   icon: Radio,           label: 'Emergency Command', badgeKey: 'emergency' },
   ]},

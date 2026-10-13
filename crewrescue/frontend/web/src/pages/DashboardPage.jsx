@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useDashboardStore, useEmergencyStore } from '../store/index.js';
+import { useAuthStore, useDashboardStore, useEmergencyStore } from '../store/index.js';
 import DispatcherMap from '../components/DispatcherMap.jsx';
 import { formatDistanceToNow } from 'date-fns';
 import {
   AlertTriangle, Users, Truck, DollarSign, Activity, Zap,
   TrendingUp, TrendingDown, Shield, Radio, Clock, CheckCircle2,
-  BarChart3, Wifi, WifiOff, RefreshCw,
+  BarChart3, Wifi, WifiOff, RefreshCw, MapPin, Server, CircleDot,
 } from 'lucide-react';
 import api from '../lib/api.js';
 import toast from 'react-hot-toast';
@@ -192,7 +192,9 @@ function WorkforceRing({ available = 0, busy = 0, unavailable = 0 }) {
 export default function DashboardPage() {
   const { stats, slaHealth, fetchStats, isLoading } = useDashboardStore();
   const { active: emergency, fetchActive, declare, resolve } = useEmergencyStore();
+  const { user } = useAuthStore();
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('live');
 
@@ -203,7 +205,11 @@ export default function DashboardPage() {
       fetchStats();
       setLastRefresh(new Date());
     }, 30_000);
-    return () => clearInterval(iv);
+    const clock = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => {
+      clearInterval(iv);
+      clearInterval(clock);
+    };
   }, []);
 
   async function handleRefresh() {
@@ -249,6 +255,20 @@ export default function DashboardPage() {
 
   return (
     <div className="page-container" style={{ paddingBottom: 32 }}>
+      <header className="command-header" aria-label="Dhaka Power Control Hub">
+        <div>
+          <div className="command-eyebrow"><CircleDot size={11} /> SYSTEM ONLINE</div>
+          <h1 className="command-title">Dhaka Power <span>|</span> Control Hub</h1>
+          <p className="command-subtitle">Emergency grid operations and field dispatch coordination</p>
+        </div>
+        <div className="command-header-meta">
+          <div className="command-user">
+            <span className="online-indicator" aria-label="Active user" />
+            <span><strong>{user?.email ?? 'admin@dhakapower.bd'}</strong><small>Active operator</small></span>
+          </div>
+          <div className="command-location"><MapPin size={14} /><span><strong>Dhaka, Bangladesh</strong><small>{currentTime.toLocaleTimeString('en-BD', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Dhaka' })}</small></span></div>
+        </div>
+      </header>
       {/* Emergency Banner */}
       {emergency && (
         <div style={{
@@ -355,7 +375,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Main grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 }}>
+      <div className="dashboard-main-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 }}>
         {/* LEFT: Map */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{
@@ -371,7 +391,7 @@ export default function DashboardPage() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Radio size={13} style={{ color: 'var(--brand-400)' }} />
-                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)' }}>Live Field Operations Map</span>
+                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)' }}>Live Grid Status &amp; GPS Dispatch</span>
               </div>
               <div style={{ display: 'flex', gap: 6, pointerEvents: 'all' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.62rem', color: 'var(--success)', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', padding: '2px 8px', borderRadius: 20 }}>
@@ -413,6 +433,28 @@ export default function DashboardPage() {
 
         {/* RIGHT: Panels column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="command-panel">
+            <div className="command-panel-header"><span><AlertTriangle size={14} style={{ color: 'var(--critical)' }} /> Interactive Alerts</span><span className="panel-live">LIVE</span></div>
+            <div className="alert-stack">
+              <div className="command-alert critical"><span className="alert-icon">!</span><span><strong>Active Grid Outages</strong><small>{s?.incidents?.critical ?? 0} critical incidents require response</small></span><b>{s?.incidents?.critical ?? 0}</b></div>
+              <div className="command-alert warning"><span className="alert-icon">↗</span><span><strong>Dispatched Crews</strong><small>{s?.technicians?.busy ?? 0} crews currently in the field</small></span><b>{s?.technicians?.busy ?? 0}</b></div>
+            </div>
+          </div>
+
+          <div className="command-panel">
+            <div className="command-panel-header"><span><Server size={14} style={{ color: 'var(--brand-400)' }} /> Real-Time BullMQ Optimization Queue</span><span className="panel-live green">ACTIVE</span></div>
+            <div className="queue-list">
+              {[
+                ['Transformer Outage - Sector 4', 'PROCESSING', 'var(--warning)'],
+                ['Feeder Load Balance - Gulshan', 'QUEUED', 'var(--brand-400)'],
+                ['Crew Route Recalculation - Mirpur', 'COMPLETED', 'var(--success)'],
+                ['SLA Risk Optimization - Uttara', 'QUEUED', 'var(--brand-400)'],
+              ].map(([task, status, color]) => (
+                <div className="queue-item" key={task}><span className="queue-dot" style={{ background: color }} /><span><strong>{task}</strong><small>optimization job</small></span><b style={{ color }}>{status}</b></div>
+              ))}
+            </div>
+          </div>
+
           {/* SLA Health */}
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
