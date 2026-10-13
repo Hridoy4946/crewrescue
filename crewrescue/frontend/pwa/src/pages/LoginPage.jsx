@@ -53,7 +53,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{
+    <main role="main" style={{
       minHeight: '100dvh',
       boxSizing: 'border-box',
       display: 'flex',
@@ -202,7 +202,7 @@ export default function LoginPage() {
       <p style={{ marginTop: 24, fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center' }}>
         CrewRescue Field App v1.0 · PWA · Works Offline
       </p>
-    </div>
+    </main>
   );
 }
 

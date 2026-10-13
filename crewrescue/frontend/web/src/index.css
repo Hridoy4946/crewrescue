@@ -9,10 +9,10 @@
 /* ── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
   /* Background scale */
-  --bg-base:       #050810;
-  --bg-surface:    #090d1a;
-  --bg-card:       #0d1425;
-  --bg-elevated:   #111827;
+  --bg-base:       #0b132b;
+  --bg-surface:    #0f172a;
+  --bg-card:       #1e293b;
+  --bg-elevated:   #1e293b;
   --bg-overlay:    rgba(9, 13, 26, 0.95);
 
   /* Border */
@@ -46,8 +46,8 @@
 
   /* Text */
   --text-primary:   #F9FAFB;
-  --text-secondary: #9CA3AF;
-  --text-muted:     #6B7280;
+  --text-secondary: #CBD5E1;
+  --text-muted:     #94A3B8;
   --text-disabled:  #374151;
 
   /* Layout */
@@ -745,7 +745,7 @@ tbody td {
 }
 .quick-login-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .quick-login-card {
-  align-items: center; background: var(--bg-elevated); border: 1px solid var(--border-default);
+  align-items: center; background: #1e293b; border: 1px solid var(--border-default);
   border-radius: 10px; color: var(--text-secondary); cursor: pointer; display: flex;
   gap: 9px; min-height: 54px; padding: 8px 10px; text-align: left; transition: 160ms ease;
 }
@@ -762,6 +762,31 @@ tbody td {
 .quick-login-card strong, .quick-login-card small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .quick-login-card strong { font-size: 0.72rem; }
 .quick-login-card small { color: var(--text-muted); font-size: 0.62rem; margin-top: 2px; }
+#login-submit { background: #fbbf24; border-color: #fbbf24; color: #020617; font-weight: 800; }
+#login-submit:hover { background: #fcd34d; border-color: #fcd34d; color: #020617; }
+.landing-page { background: #0b132b; min-height: 100dvh; overflow: hidden; position: relative; }
+.landing-video { height: 100%; inset: 0; object-fit: cover; opacity: .3; position: absolute; width: 100%; }
+.landing-overlay { background: linear-gradient(110deg, rgba(11,19,43,.98), rgba(15,23,42,.82), rgba(11,19,43,.92)); inset: 0; position: absolute; }
+.landing-content { margin: 0 auto; max-width: 940px; padding: clamp(72px, 12vh, 150px) 24px; position: relative; z-index: 1; }
+.landing-brand { align-items: center; color: #38bdf8; display: flex; font-size: .72rem; font-weight: 800; gap: 8px; letter-spacing: .12em; }
+.landing-content h1 { color: #fff; font-size: clamp(2.1rem, 6vw, 4.5rem); line-height: 1.05; margin: 18px 0; max-width: 850px; }
+.landing-content > p { color: #cbd5e1; font-size: 1.05rem; max-width: 650px; }
+.landing-metrics { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0; }
+.landing-metric { align-items: center; border: 1px solid; border-radius: 12px; display: flex; gap: 10px; min-width: 180px; padding: 12px 15px; }
+.landing-metric span { display: flex; flex-direction: column; }
+.landing-metric strong { color: #fff; font-size: 1.25rem; }
+.landing-metric small { color: #e2e8f0; font-size: .7rem; }
+.landing-metric.outage { background: rgba(251,191,36,.15); border-color: #fbbf24; color: #fbbf24; }
+.landing-metric.crews { background: rgba(34,197,94,.15); border-color: #22c55e; color: #22c55e; }
+.landing-portals { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 680px; }
+.landing-portal { align-items: center; border: 1px solid #475569; border-radius: 12px; color: #fff; display: flex; gap: 11px; padding: 15px; text-decoration: none; }
+.landing-portal span { display: flex; flex: 1; flex-direction: column; }
+.landing-portal strong { font-size: .85rem; }
+.landing-portal small { color: #cbd5e1; font-size: .68rem; margin-top: 3px; }
+.landing-portal b { font-size: 1.2rem; }
+.landing-portal.admin { background: #1e293b; border-color: #38bdf8; }
+.landing-portal.field { background: #14532d; border-color: #22c55e; }
+@media (max-width: 600px) { .landing-portals { grid-template-columns: 1fr; } }
 .login-switch {
   display: flex;
   align-items: center;

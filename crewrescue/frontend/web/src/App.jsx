@@ -5,6 +5,7 @@ import { useAuthStore, useDashboardStore } from './store/index.js';
 import { useSocket } from './hooks/useSocket.js';
 
 import LoginPage        from './pages/LoginPage.jsx';
+import LandingPage      from './pages/LandingPage.jsx';
 import DashboardPage    from './pages/DashboardPage.jsx';
 import IncidentsPage    from './pages/IncidentsPage.jsx';
 import TechniciansPage  from './pages/TechniciansPage.jsx';
@@ -144,6 +145,7 @@ export default function App() {
         }}
       />
       <Routes>
+        <Route path="/welcome" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/*" element={
           <AuthGuard>

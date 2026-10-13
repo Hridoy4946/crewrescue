@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { RefreshCw, WifiOff, Search } from 'lucide-react';
-import { useWorkOrderStore } from '../store/index.js';
+import { RefreshCw, WifiOff, Search, MapPin, ShieldAlert, Navigation, CheckCircle2, UserRound, Radio } from 'lucide-react';
+import { useAuthStore, useWorkOrderStore } from '../store/index.js';
 import { STATUS_COLORS, STATUS_LABELS, formatSLARemaining } from '../lib/transitions.js';
+import toast from 'react-hot-toast';
 
 const SEVERITY_COLOR = {
   CRITICAL: '#EF4444',
@@ -85,9 +86,11 @@ function WOItem({ wo, onSelect }) {
 }
 
 export default function WorkOrdersPage({ onSelect }) {
-  const { workOrders, isLoading, isOffline, fetchMy } = useWorkOrderStore();
+  const { user } = useAuthStore();
+  const { workOrders, isLoading, isOffline, fetchMy, transitionStatus } = useWorkOrderStore();
   const [tab, setTab]   = useState('active');
   const [search, setSearch] = useState('');
+  const [transitioning, setTransitioning] = useState(false);
 
   useEffect(() => {
     fetchMy();
@@ -108,9 +111,42 @@ export default function WorkOrdersPage({ onSelect }) {
 
     return matchTab && matchSearch;
   });
+  const urgentWO = [...workOrders].filter(wo => !['RESOLVED', 'VERIFIED', 'CLOSED'].includes(wo.status))
+    .sort((a, b) => ({ CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }[a.severity] ?? 4) - ({ CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }[b.severity] ?? 4))[0];
+  const canTransition = (wo, status) => ({ EN_ROUTE: wo?.status === 'ACCEPTED', ARRIVED: wo?.status === 'EN_ROUTE', RESOLVED: wo?.status === 'IN_PROGRESS' }[status]);
+  async function handleQuickAction(status) {
+    if (!urgentWO || !canTransition(urgentWO, status) || transitioning) return;
+    setTransitioning(true);
+    try {
+      const result = await transitionStatus(urgentWO._id, status);
+      toast.success(result.queued ? 'Update saved offline and queued for sync' : `Task updated: ${STATUS_LABELS[status]}`);
+      await fetchMy();
+    } catch { toast.error('Unable to update this task'); }
+    finally { setTransitioning(false); }
+  }
 
   return (
     <>
+      <section className="field-profile-card" aria-label="Technician profile">
+        <div className="field-profile-avatar"><UserRound size={20} /></div>
+        <div className="field-profile-copy"><span>Technician</span><strong>{user?.email ?? 'tech1@dhakapower.bd'}</strong></div>
+        <span className="active-unit-badge"><span /> Active Unit 1</span>
+      </section>
+      {urgentWO && <section className="urgent-dispatch" aria-labelledby="urgent-dispatch-title">
+        <div className="hazard-stripe" aria-hidden="true" />
+        <div className="urgent-dispatch-body">
+          <div className="urgent-kicker"><Radio size={13} /> URGENT DISPATCH</div>
+          <div className="urgent-heading-row"><div><h1 id="urgent-dispatch-title">{urgentWO.title || 'Substation Error - Dhaka Zone B'}</h1><div className="urgent-location"><MapPin size={14} /> {urgentWO.location?.address || 'Dhaka Zone B'}</div></div><ShieldAlert className="urgent-alert-icon" size={30} /></div>
+          <div className="urgent-tags"><span className="hazard-tag">HAZARD</span><span className="priority-tag">{urgentWO.severity || 'HIGH'} PRIORITY</span><span className="urgent-status">{STATUS_LABELS[urgentWO.status] || urgentWO.status}</span></div>
+          {urgentWO.sla?.resolutionDeadline && <div className="urgent-sla">SLA: {formatSLARemaining(urgentWO.sla.resolutionDeadline)?.text} remaining</div>}
+          <button className="urgent-view-button" type="button" onClick={() => onSelect(urgentWO)}>View full dispatch details <span>→</span></button>
+        </div>
+      </section>}
+      {urgentWO && <section className="field-actions" aria-label="Dispatch status actions">
+        <button type="button" className="field-action action-route" disabled={!canTransition(urgentWO, 'EN_ROUTE') || transitioning} onClick={() => handleQuickAction('EN_ROUTE')}><Navigation size={22} /><span>ON ROUTE</span><small>{canTransition(urgentWO, 'EN_ROUTE') ? 'Start travel' : STATUS_LABELS[urgentWO.status]}</small></button>
+        <button type="button" className="field-action action-site" disabled={!canTransition(urgentWO, 'ARRIVED') || transitioning} onClick={() => handleQuickAction('ARRIVED')}><MapPin size={22} /><span>ON SITE</span><small>{canTransition(urgentWO, 'ARRIVED') ? 'Confirm arrival' : 'After On Route'}</small></button>
+        <button type="button" className="field-action action-complete" disabled={!canTransition(urgentWO, 'RESOLVED') || transitioning} onClick={() => handleQuickAction('RESOLVED')}><CheckCircle2 size={22} /><span>TASK COMPLETED</span><small>{canTransition(urgentWO, 'RESOLVED') ? 'Mark resolved' : 'After work starts'}</small></button>
+      </section>}
       {/* Search bar */}
       <div style={{ position: 'relative', marginBottom: 12 }}>
         <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />

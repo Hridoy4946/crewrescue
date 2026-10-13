@@ -55,7 +55,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-page">
+    <main className="login-page" role="main">
       <div className="login-bg" />
 
 
@@ -173,7 +173,7 @@ export default function LoginPage() {
           </span>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
