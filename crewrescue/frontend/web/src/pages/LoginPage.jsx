@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/index.js';
 import api from '../lib/api.js';
-import { Siren } from 'lucide-react';
+import { BarChart3, Radio, ShieldCheck, Siren } from 'lucide-react';
 
 export default function LoginPage() {
   const [mode, setMode] = useState('login');
@@ -82,7 +82,7 @@ export default function LoginPage() {
                       style={{ '--quick-login-color': demo.color }}
                       onClick={() => { setEmail(demo.email); setPassword(demo.password); }}
                     >
-                      <span className="quick-login-icon">{demo.icon}</span>
+                      <span className="quick-login-icon"><demo.icon size={15} /></span>
                       <span>
                         <strong>{demo.label}</strong>
                         <small>{demo.description}</small>
@@ -191,8 +191,8 @@ const roleOptions = [
 ];
 
 const quickLoginRoles = [
-  { label: 'Administrator', description: 'Full dashboard access', email: 'admin@dhakapower.bd', password: 'Admin@CrewRescue2025', color: '#8b5cf6', icon: '◆' },
-  { label: 'Dispatcher', description: 'Dispatch operations', email: 'dispatcher@dhakapower.bd', password: 'Dispatch@2025', color: '#3b82f6', icon: '✦' },
-  { label: 'Emergency Manager', description: 'Emergency response', email: 'emergency@dhakapower.bd', password: 'Emergency@2025', color: '#f97316', icon: '!' },
-  { label: 'Executive', description: 'Executive overview', email: 'executive@dhakapower.bd', password: 'Executive@2025', color: '#ec4899', icon: '●' },
+  { label: 'Administrator', description: 'Full dashboard access', email: 'admin@dhakapower.bd', password: 'Admin@CrewRescue2025', color: '#8b5cf6', icon: ShieldCheck },
+  { label: 'Dispatcher', description: 'Dispatch operations', email: 'dispatcher@dhakapower.bd', password: 'Dispatch@2025', color: '#3b82f6', icon: Radio },
+  { label: 'Emergency Manager', description: 'Emergency response', email: 'emergency@dhakapower.bd', password: 'Emergency@2025', color: '#f97316', icon: Siren },
+  { label: 'Executive', description: 'Executive overview', email: 'executive@dhakapower.bd', password: 'Executive@2025', color: '#ec4899', icon: BarChart3 },
 ];

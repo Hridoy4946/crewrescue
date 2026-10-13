@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuthStore } from '../store/index.js';
 import api from '../lib/api.js';
-import { ShieldCheck, Siren } from 'lucide-react';
+import { HardHat, Radio, ShieldCheck, Siren } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -109,7 +109,7 @@ export default function LoginPage() {
                 style={{ '--quick-login-color': demo.color }}
                 onClick={() => { setEmail(demo.email); setPassword(demo.password); }}
               >
-                <span className="quick-login-icon">{demo.icon}</span>
+                <span className="quick-login-icon"><demo.icon size={15} /></span>
                 <span>
                   <strong>{demo.label}</strong>
                   <small>{demo.description}</small>
@@ -227,7 +227,7 @@ const roleOptions = [
 ];
 
 const quickLoginRoles = [
-  { label: 'Technician 1', description: 'Field assignments', email: 'tech1@dhakapower.bd', password: 'Tech@2025', color: '#22c55e', icon: '⚡' },
-  { label: 'Technician 2', description: 'Field assignments', email: 'tech2@dhakapower.bd', password: 'Tech@2025', color: '#14b8a6', icon: '◆' },
-  { label: 'Supervisor', description: 'Crew coordination', email: 'supervisor@dhakapower.bd', password: 'Supervisor@2025', color: '#06b6d4', icon: '✦' },
+  { label: 'Technician 1', description: 'Field assignments', email: 'tech1@dhakapower.bd', password: 'Tech@2025', color: '#22c55e', icon: HardHat },
+  { label: 'Technician 2', description: 'Field assignments', email: 'tech2@dhakapower.bd', password: 'Tech@2025', color: '#14b8a6', icon: Radio },
+  { label: 'Supervisor', description: 'Crew coordination', email: 'supervisor@dhakapower.bd', password: 'Supervisor@2025', color: '#06b6d4', icon: ShieldCheck },
 ];
