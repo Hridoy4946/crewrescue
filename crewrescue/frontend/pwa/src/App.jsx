@@ -124,9 +124,9 @@ export default function App() {
       <header className="topbar">
         <a href="#" className="topbar-logo" onClick={e => { e.preventDefault(); setSelectedWOId(null); setTab('orders'); }}>
           <div className="topbar-logo-icon">🚨</div>
-          <span>CrewRescue</span>
+          <span>DHAKA POWER</span>
         </a>
-        <span style={{ marginLeft: 'auto', fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Field App</span>
+        <span style={{ marginLeft: 'auto', fontSize: '0.68rem', color: '#F8FAFC', fontWeight: 800, letterSpacing: '0.1em' }}>DHAKA POWER PWA</span>
       </header>
 
       {/* Main page content */}
