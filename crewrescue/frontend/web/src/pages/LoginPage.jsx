@@ -64,57 +64,57 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="login-logo">
           <div className="login-logo-icon"><Siren size={28} /></div>
-            <div className="login-title">CrewRescue AI</div>
+          <div className="login-title">CrewRescue AI</div>
           <div className="login-sub">Dhaka Power · Emergency Operations</div>
           <div className="login-status"><span /> Secure command network online</div>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
-            {mode === 'login' && (
-              <div className="quick-login">
-                <div className="quick-login-heading">Quick access</div>
-                <div className="quick-login-grid">
-                  {quickLoginRoles.map((demo) => (
-                    <button
-                      key={demo.label}
-                      type="button"
-                      className={`quick-login-card${email === demo.email ? ' selected' : ''}`}
-                      style={{ '--quick-login-color': demo.color }}
-                      onClick={() => { setEmail(demo.email); setPassword(demo.password); }}
-                    >
-                      <span className="quick-login-icon"><demo.icon size={15} /></span>
-                      <span>
-                        <strong>{demo.label}</strong>
-                        <small>{demo.description}</small>
-                      </span>
+          {mode === 'login' && (
+            <div className="quick-login">
+              <div className="quick-login-heading">Quick access</div>
+              <div className="quick-login-grid">
+                {quickLoginRoles.map((demo) => (
+                  <button
+                    key={demo.label}
+                    type="button"
+                    className={`quick-login-card${email === demo.email ? ' selected' : ''}`}
+                    style={{ '--quick-login-color': demo.color }}
+                    onClick={() => { setEmail(demo.email); setPassword(demo.password); }}
+                  >
+                    <span className="quick-login-icon"><demo.icon size={15} /></span>
+                    <span>
+                      <strong>{demo.label}</strong>
+                      <small>{demo.description}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {mode === 'register' && (
+            <>
+              <div className="form-group">
+                <label className="form-label" htmlFor="name">Full Name</label>
+                <input id="name" type="text" className="form-input" placeholder="Your full name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" minLength={2} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="org-name">Organization <span className="text-muted">(first setup only)</span></label>
+                <input id="org-name" type="text" className="form-input" placeholder="Your organization" value={orgName} onChange={(e) => setOrgName(e.target.value)} autoComplete="organization" />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="role">Requested Role</label>
+                <div className="role-options">
+                  {roleOptions.map((option) => (
+                    <button key={option.value} type="button" className={`role-option${role === option.value ? ' selected' : ''}`} style={{ '--role-color': option.color }} onClick={() => setRole(option.value)}>
+                      <span className="role-dot" />{option.label}
                     </button>
                   ))}
                 </div>
               </div>
-            )}
-            {mode === 'register' && (
-              <>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="name">Full Name</label>
-                  <input id="name" type="text" className="form-input" placeholder="Your full name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" minLength={2} required />
-                </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="org-name">Organization <span className="text-muted">(first setup only)</span></label>
-                  <input id="org-name" type="text" className="form-input" placeholder="Your organization" value={orgName} onChange={(e) => setOrgName(e.target.value)} autoComplete="organization" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="role">Requested Role</label>
-                  <div className="role-options">
-                    {roleOptions.map((option) => (
-                      <button key={option.value} type="button" className={`role-option${role === option.value ? ' selected' : ''}`} style={{ '--role-color': option.color }} onClick={() => setRole(option.value)}>
-                        <span className="role-dot" />{option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-            <div className="form-group">
+            </>
+          )}
+          <div className="form-group">
             <label className="form-label" htmlFor="email">Email Address</label>
             <input
               id="email"
@@ -191,8 +191,8 @@ const roleOptions = [
 ];
 
 const quickLoginRoles = [
-  { label: 'Administrator', description: 'Full dashboard access', email: 'admin@dhakapower.bd', password: 'Admin@CrewRescue2025', color: '#8b5cf6', icon: ShieldCheck },
-  { label: 'Dispatcher', description: 'Dispatch operations', email: 'dispatcher@dhakapower.bd', password: 'Dispatch@2025', color: '#3b82f6', icon: Radio },
-  { label: 'Emergency Manager', description: 'Emergency response', email: 'emergency@dhakapower.bd', password: 'Emergency@2025', color: '#f97316', icon: Siren },
-  { label: 'Executive', description: 'Executive overview', email: 'executive@dhakapower.bd', password: 'Executive@2025', color: '#ec4899', icon: BarChart3 },
+  { label: 'Administrator', description: 'Full dashboard access', email: 'admin@dhakapower.bd', password: '@admin', color: '#8b5cf6', icon: ShieldCheck },
+  { label: 'Dispatcher', description: 'Dispatch operations', email: 'dispatcher@dhakapower.bd', password: '@dispatcher', color: '#3b82f6', icon: Radio },
+  { label: 'Emergency Manager', description: 'Emergency response', email: 'emergency@dhakapower.bd', password: '@emergency', color: '#f97316', icon: Siren },
+  { label: 'Executive', description: 'Executive overview', email: 'executive@dhakapower.bd', password: '@executive', color: '#ec4899', icon: BarChart3 },
 ];

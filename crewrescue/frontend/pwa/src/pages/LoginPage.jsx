@@ -6,13 +6,13 @@ import toast from 'react-hot-toast';
 
 export default function LoginPage() {
   const [mode, setMode] = useState('login');
-  const [email, setEmail]   = useState('');
+  const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [orgName, setOrgName] = useState('');
   const [role, setRole] = useState('TECHNICIAN');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [loading, setLoading] = useState(false);
   const { login } = useAuthStore();
 
   async function handleSubmit(e) {
@@ -235,7 +235,7 @@ const roleOptions = [
 ];
 
 const quickLoginRoles = [
-  { label: 'Technician 1', description: 'Field assignments', email: 'tech1@dhakapower.bd', password: 'Tech@2025', color: '#22c55e', icon: HardHat },
-  { label: 'Technician 2', description: 'Field assignments', email: 'tech2@dhakapower.bd', password: 'Tech@2025', color: '#14b8a6', icon: Radio },
-  { label: 'Supervisor', description: 'Crew coordination', email: 'supervisor@dhakapower.bd', password: 'Supervisor@2025', color: '#06b6d4', icon: ShieldCheck },
+  { label: 'Technician 1', description: 'Field assignments', email: 'tech1@dhakapower.bd', password: '@technician', color: '#22c55e', icon: HardHat },
+  { label: 'Technician 2', description: 'Field assignments', email: 'tech2@dhakapower.bd', password: '@technician', color: '#14b8a6', icon: Radio },
+  { label: 'Supervisor', description: 'Crew coordination', email: 'supervisor@dhakapower.bd', password: '@supervisor', color: '#06b6d4', icon: ShieldCheck },
 ];
