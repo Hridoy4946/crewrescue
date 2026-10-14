@@ -28,3 +28,8 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Local Context Dumps & Scratch Exports
+crewrescue_clean_code.txt
+full_project_context.txt
+
